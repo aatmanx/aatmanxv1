@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { motion } from "framer-motion"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -14,7 +14,7 @@ interface NavItem {
 interface NavBarProps {
   items: NavItem[]
   className?: string
-  trailing?: React.ReactNode
+  trailing?: ReactNode
 }
 
 export function NavBar({ items, className, trailing }: NavBarProps) {
