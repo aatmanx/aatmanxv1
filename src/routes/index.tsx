@@ -5,8 +5,6 @@ import {
   Sparkles,
   Workflow,
   Wallet,
-  BookOpen,
-  Scale,
   LayoutDashboard,
   ArrowUpRight,
   Check,
@@ -42,18 +40,26 @@ const navItems = [
   { name: "features", url: "#features", icon: Sparkles },
   { name: "workflow", url: "#workflow", icon: Workflow },
   { name: "pricing", url: "#pricing", icon: Wallet },
-  { name: "resources", url: "#resources", icon: BookOpen },
-  { name: "tradeoffs", url: "#tradeoffs", icon: Scale },
-  { name: "dashboard", url: "/dashboard", icon: LayoutDashboard },
 ];
 
 function Index() {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background text-foreground font-mono">
-      <NavBar items={navItems} />
+      <NavBar
+        items={navItems}
+        trailing={
+          <a
+            href="/dashboard"
+            aria-label="Open dashboard"
+            className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card/60 text-foreground/80 backdrop-blur-lg shadow-lg transition hover:border-accent/60 hover:text-foreground"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+          </a>
+        }
+      />
       <PixelHero
-        onPrimaryClick={() => navigate({ to: "/auth" })}
+        onPrimaryClick={() => navigate({ to: "/questionnaire" })}
         onSecondaryClick={() => {
           document.querySelector("#workflow")?.scrollIntoView({ behavior: "smooth" });
         }}
