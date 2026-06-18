@@ -119,7 +119,7 @@ function Features() {
             { icon: Globe, title: "custom_domain", body: "Bring your domain or use a free .aatman.app subdomain." },
           ].map((f) => (
             <div key={f.title} className="bg-background p-6">
-              <f.icon className="h-4 w-4 text-foreground" strokeWidth={1.75} />
+              <f.icon className="h-4 w-4 text-accent" strokeWidth={1.75} />
               <h3 className="mt-4 text-sm font-semibold text-foreground">{f.title}</h3>
               <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">{f.body}</p>
             </div>
@@ -214,7 +214,7 @@ function LighthouseMockup() {
       <div className="grid grid-cols-3 gap-3">
         {scores.map((s) => (
           <div key={s.l} className="flex flex-col items-center">
-            <div className="relative h-14 w-14 rounded-full border-2 border-foreground/80 flex items-center justify-center">
+              <div className="relative h-14 w-14 rounded-full border-2 border-accent/70 flex items-center justify-center">
               <span className="text-base font-bold text-foreground">{s.v}</span>
             </div>
             <div className="mt-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">{s.l}</div>
@@ -420,7 +420,7 @@ function Pricing() {
               <div className="flex items-baseline justify-between">
                 <h3 className="text-lg font-semibold text-foreground">{t.name}</h3>
                 {t.highlight && (
-                  <span className="text-[10px] uppercase tracking-widest text-background bg-foreground px-2 py-0.5 rounded">
+              <span className="text-[10px] uppercase tracking-widest text-accent-foreground bg-accent px-2 py-0.5 rounded">
                     popular
                   </span>
                 )}
@@ -433,16 +433,17 @@ function Pricing() {
               <ul className="mt-8 space-y-3 text-sm text-foreground/90 flex-1">
                 {t.features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
-                    <Check className="h-4 w-4 mt-0.5 text-foreground" strokeWidth={2} />
+                    <Check className="h-4 w-4 mt-0.5 text-accent" strokeWidth={2} />
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
               <button
+                onClick={() => navigate({ to: "/questionnaire" })}
                 className={`mt-8 w-full rounded-md py-3 text-sm font-semibold transition ${
                   t.highlight
-                    ? "bg-foreground text-background hover:bg-foreground/90"
-                    : "border border-border bg-background text-foreground hover:bg-muted"
+                    ? "border border-accent/70 bg-foreground text-background hover:bg-foreground/90"
+                    : "border border-accent/40 bg-background text-foreground hover:bg-muted"
                 }`}
               >
                 {t.cta}
@@ -553,8 +554,8 @@ function Tradeoffs() {
             Walk away with a live B2B website your sales team would actually send to a customer.
           </p>
           <button
-            onClick={() => navigate({ to: "/auth" })}
-            className="mt-8 inline-flex items-center gap-2 rounded-md bg-foreground text-background px-6 py-3 text-sm font-semibold hover:bg-foreground/90 transition"
+            onClick={() => navigate({ to: "/questionnaire" })}
+            className="mt-8 inline-flex items-center gap-2 rounded-md border border-accent/70 bg-foreground text-background px-6 py-3 text-sm font-semibold hover:bg-foreground/90 transition"
           >
             $ aatman init
             <ArrowUpRight className="h-4 w-4" />
