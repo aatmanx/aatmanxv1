@@ -145,7 +145,7 @@ function AuthPage() {
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  $ {mode === "signin" ? "sign_in()" : "create_account()"}
+                  $ {mode === "signin" ? "sign_in()" : mode === "signup" ? "create_account()" : "send_reset_link()"}
                   {mode === "forgot" ? <MailCheck className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
                 </>
               )}
