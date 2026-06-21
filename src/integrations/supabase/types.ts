@@ -14,159 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          email: string
-          email_verified_at: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id: string
-          email: string
-          email_verified_at?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          email_verified_at?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       businesses: {
         Row: {
-          id: string
-          user_id: string
-          category: string
+          address: string | null
           business_name: string
-          tagline: string | null
-          description: string
-          email: string
-          phone: string
-          address: string
+          category: string
+          created_at: string
+          description: string | null
           domain_preference: string | null
+          email: string | null
+          id: string
+          phone: string | null
           social_links: Json
-          created_at: string
+          tagline: string | null
           updated_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          category: string
+          address?: string | null
           business_name: string
-          tagline?: string | null
-          description: string
-          email: string
-          phone: string
-          address: string
-          domain_preference?: string | null
-          social_links?: Json
+          category: string
           created_at?: string
+          description?: string | null
+          domain_preference?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          social_links?: Json
+          tagline?: string | null
           updated_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
-          category?: string
+          address?: string | null
           business_name?: string
-          tagline?: string | null
-          description?: string
-          email?: string
-          phone?: string
-          address?: string
-          domain_preference?: string | null
-          social_links?: Json
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      questionnaire_submissions: {
-        Row: {
-          id: string
-          user_id: string | null
-          business_id: string | null
-          session_id: string
-          category: string
-          business_profile: Json
-          answers_json: Json
-          status: Database["public"]["Enums"]["questionnaire_status"]
-          ai_analysis: Json | null
-          completed_at: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          business_id?: string | null
-          session_id: string
-          category: string
-          business_profile?: Json
-          answers_json?: Json
-          status?: Database["public"]["Enums"]["questionnaire_status"]
-          ai_analysis?: Json | null
-          completed_at?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          business_id?: string | null
-          session_id?: string
           category?: string
-          business_profile?: Json
-          answers_json?: Json
-          status?: Database["public"]["Enums"]["questionnaire_status"]
-          ai_analysis?: Json | null
-          completed_at?: string | null
           created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      websites: {
-        Row: {
-          id: string
-          user_id: string
-          business_id: string | null
-          submission_id: string | null
-          slug: string | null
-          domain: string | null
-          website_json: Json
-          status: Database["public"]["Enums"]["website_status"]
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
+          description?: string | null
+          domain_preference?: string | null
+          email?: string | null
           id?: string
-          user_id: string
-          business_id?: string | null
-          submission_id?: string | null
-          slug?: string | null
-          domain?: string | null
-          website_json?: Json
-          status?: Database["public"]["Enums"]["website_status"]
-          created_at?: string
+          phone?: string | null
+          social_links?: Json
+          tagline?: string | null
           updated_at?: string
-        }
-        Update: {
-          id?: string
           user_id?: string
-          business_id?: string | null
-          submission_id?: string | null
-          slug?: string | null
-          domain?: string | null
-          website_json?: Json
-          status?: Database["public"]["Enums"]["website_status"]
-          created_at?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -209,6 +101,110 @@ export type Database = {
         }
         Relationships: []
       }
+      questionnaire_submissions: {
+        Row: {
+          ai_analysis: Json
+          answers_json: Json
+          business_id: string | null
+          business_profile: Json
+          category: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          session_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_analysis?: Json
+          answers_json?: Json
+          business_id?: string | null
+          business_profile?: Json
+          category: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          session_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_analysis?: Json
+          answers_json?: Json
+          business_id?: string | null
+          business_profile?: Json
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_submissions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      websites: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          id: string
+          slug: string | null
+          status: string
+          submission_id: string | null
+          updated_at: string
+          user_id: string
+          website_json: Json
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          slug?: string | null
+          status?: string
+          submission_id?: string | null
+          updated_at?: string
+          user_id: string
+          website_json?: Json
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          slug?: string | null
+          status?: string
+          submission_id?: string | null
+          updated_at?: string
+          user_id?: string
+          website_json?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "websites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "websites_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -217,8 +213,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      questionnaire_status: "draft" | "completed" | "saved" | "generating" | "generated"
-      website_status: "draft" | "generating" | "ready" | "published" | "archived"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -345,9 +340,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      questionnaire_status: ["draft", "completed", "saved", "generating", "generated"] as const,
-      website_status: ["draft", "generating", "ready", "published", "archived"] as const,
-    },
+    Enums: {},
   },
 } as const

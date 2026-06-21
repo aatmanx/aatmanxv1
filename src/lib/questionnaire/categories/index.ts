@@ -1,4 +1,4 @@
-import type { QuestionnaireConfig } from "./types";
+import type { QuestionnaireConfig } from "../types";
 import { realEstateQuestionnaire } from "./real-estate";
 import { placeholderQuestionnaire } from "./placeholder";
 
