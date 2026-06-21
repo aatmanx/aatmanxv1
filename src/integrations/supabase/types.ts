@@ -14,6 +14,162 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          id: string
+          email: string
+          email_verified_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          email_verified_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          email_verified_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      businesses: {
+        Row: {
+          id: string
+          user_id: string
+          category: string
+          business_name: string
+          tagline: string | null
+          description: string
+          email: string
+          phone: string
+          address: string
+          domain_preference: string | null
+          social_links: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          category: string
+          business_name: string
+          tagline?: string | null
+          description: string
+          email: string
+          phone: string
+          address: string
+          domain_preference?: string | null
+          social_links?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          category?: string
+          business_name?: string
+          tagline?: string | null
+          description?: string
+          email?: string
+          phone?: string
+          address?: string
+          domain_preference?: string | null
+          social_links?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questionnaire_submissions: {
+        Row: {
+          id: string
+          user_id: string | null
+          business_id: string | null
+          session_id: string
+          category: string
+          business_profile: Json
+          answers_json: Json
+          status: Database["public"]["Enums"]["questionnaire_status"]
+          ai_analysis: Json | null
+          completed_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          business_id?: string | null
+          session_id: string
+          category: string
+          business_profile?: Json
+          answers_json?: Json
+          status?: Database["public"]["Enums"]["questionnaire_status"]
+          ai_analysis?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          business_id?: string | null
+          session_id?: string
+          category?: string
+          business_profile?: Json
+          answers_json?: Json
+          status?: Database["public"]["Enums"]["questionnaire_status"]
+          ai_analysis?: Json | null
+          completed_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      websites: {
+        Row: {
+          id: string
+          user_id: string
+          business_id: string | null
+          submission_id: string | null
+          slug: string | null
+          domain: string | null
+          website_json: Json
+          status: Database["public"]["Enums"]["website_status"]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          business_id?: string | null
+          submission_id?: string | null
+          slug?: string | null
+          domain?: string | null
+          website_json?: Json
+          status?: Database["public"]["Enums"]["website_status"]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          business_id?: string | null
+          submission_id?: string | null
+          slug?: string | null
+          domain?: string | null
+          website_json?: Json
+          status?: Database["public"]["Enums"]["website_status"]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       questionnaire_responses: {
         Row: {
           answer: Json
@@ -61,7 +217,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      questionnaire_status: "draft" | "completed" | "saved" | "generating" | "generated"
+      website_status: "draft" | "generating" | "ready" | "published" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -188,6 +345,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      questionnaire_status: ["draft", "completed", "saved", "generating", "generated"] as const,
+      website_status: ["draft", "generating", "ready", "published", "archived"] as const,
+    },
   },
 } as const
