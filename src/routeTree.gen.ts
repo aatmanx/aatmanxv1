@@ -9,12 +9,37 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WebsitesRouteImport } from './routes/websites'
+import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as QuestionnaireRouteImport } from './routes/questionnaire'
+import { Route as PublishRouteImport } from './routes/publish'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as EditorRouteImport } from './routes/editor'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as QuestionnaireCompleteRouteImport } from './routes/questionnaire.complete'
 
+const WebsitesRoute = WebsitesRouteImport.update({
+  id: '/websites',
+  path: '/websites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -25,9 +50,34 @@ const QuestionnaireRoute = QuestionnaireRouteImport.update({
   path: '/questionnaire',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublishRoute = PublishRouteImport.update({
+  id: '/publish',
+  path: '/publish',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditorRoute = EditorRouteImport.update({
+  id: '/editor',
+  path: '/editor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -35,58 +85,168 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuestionnaireCompleteRoute = QuestionnaireCompleteRouteImport.update({
+  id: '/complete',
+  path: '/complete',
+  getParentRoute: () => QuestionnaireRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
-  '/questionnaire': typeof QuestionnaireRoute
+  '/editor': typeof EditorRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/publish': typeof PublishRoute
+  '/questionnaire': typeof QuestionnaireRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/websites': typeof WebsitesRoute
+  '/questionnaire/complete': typeof QuestionnaireCompleteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
-  '/questionnaire': typeof QuestionnaireRoute
+  '/editor': typeof EditorRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/publish': typeof PublishRoute
+  '/questionnaire': typeof QuestionnaireRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/websites': typeof WebsitesRoute
+  '/questionnaire/complete': typeof QuestionnaireCompleteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/auth': typeof AuthRoute
+  '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
-  '/questionnaire': typeof QuestionnaireRoute
+  '/editor': typeof EditorRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/publish': typeof PublishRoute
+  '/questionnaire': typeof QuestionnaireRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
+  '/verify-email': typeof VerifyEmailRoute
+  '/websites': typeof WebsitesRoute
+  '/questionnaire/complete': typeof QuestionnaireCompleteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/questionnaire' | '/reset-password'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/auth'
+    | '/billing'
+    | '/dashboard'
+    | '/editor'
+    | '/forgot-password'
+    | '/login'
+    | '/publish'
+    | '/questionnaire'
+    | '/reset-password'
+    | '/signup'
+    | '/verify-email'
+    | '/websites'
+    | '/questionnaire/complete'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/questionnaire' | '/reset-password'
+  to:
+    | '/'
+    | '/account'
+    | '/auth'
+    | '/billing'
+    | '/dashboard'
+    | '/editor'
+    | '/forgot-password'
+    | '/login'
+    | '/publish'
+    | '/questionnaire'
+    | '/reset-password'
+    | '/signup'
+    | '/verify-email'
+    | '/websites'
+    | '/questionnaire/complete'
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/auth'
+    | '/billing'
     | '/dashboard'
+    | '/editor'
+    | '/forgot-password'
+    | '/login'
+    | '/publish'
     | '/questionnaire'
     | '/reset-password'
+    | '/signup'
+    | '/verify-email'
+    | '/websites'
+    | '/questionnaire/complete'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRoute
+  BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
-  QuestionnaireRoute: typeof QuestionnaireRoute
+  EditorRoute: typeof EditorRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  PublishRoute: typeof PublishRoute
+  QuestionnaireRoute: typeof QuestionnaireRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SignupRoute: typeof SignupRoute
+  VerifyEmailRoute: typeof VerifyEmailRoute
+  WebsitesRoute: typeof WebsitesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/websites': {
+      id: '/websites'
+      path: '/websites'
+      fullPath: '/websites'
+      preLoaderRoute: typeof WebsitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-email': {
+      id: '/verify-email'
+      path: '/verify-email'
+      fullPath: '/verify-email'
+      preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -101,11 +261,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QuestionnaireRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/publish': {
+      id: '/publish'
+      path: '/publish'
+      fullPath: '/publish'
+      preLoaderRoute: typeof PublishRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editor': {
+      id: '/editor'
+      path: '/editor'
+      fullPath: '/editor'
+      preLoaderRoute: typeof EditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -115,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -122,16 +324,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/questionnaire/complete': {
+      id: '/questionnaire/complete'
+      path: '/complete'
+      fullPath: '/questionnaire/complete'
+      preLoaderRoute: typeof QuestionnaireCompleteRouteImport
+      parentRoute: typeof QuestionnaireRoute
+    }
   }
 }
 
+interface QuestionnaireRouteChildren {
+  QuestionnaireCompleteRoute: typeof QuestionnaireCompleteRoute
+}
+
+const QuestionnaireRouteChildren: QuestionnaireRouteChildren = {
+  QuestionnaireCompleteRoute: QuestionnaireCompleteRoute,
+}
+
+const QuestionnaireRouteWithChildren = QuestionnaireRoute._addFileChildren(
+  QuestionnaireRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   AuthRoute: AuthRoute,
+  BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
-  QuestionnaireRoute: QuestionnaireRoute,
+  EditorRoute: EditorRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  PublishRoute: PublishRoute,
+  QuestionnaireRoute: QuestionnaireRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
+  SignupRoute: SignupRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
+  WebsitesRoute: WebsitesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
