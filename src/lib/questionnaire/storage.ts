@@ -80,7 +80,7 @@ export function isValidEmail(email: string): boolean {
 }
 
 export function isValidPhone(phone: string): boolean {
-  return /^[\d\s\-()+]{7,20}$/.test(phone.trim());
+  return /^[\d\s\-()+ ]{6,}$/.test(phone.trim());
 }
 
 export function validateBusinessProfile(profile: Partial<import("./types").BusinessProfile>): Record<string, string> {

@@ -79,7 +79,7 @@ export function AuthForm({ mode: initialMode, nextPath = "/dashboard", onSuccess
 
   return (
     <div className="min-h-screen bg-background text-foreground font-mono flex items-center justify-center px-6">
-      <div className="absolute inset-0 grid-bg opacity-30 [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)] pointer-events-none" />
+      
       <div className="relative w-full max-w-md">
         <Link to="/" className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground mb-8">
           <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
