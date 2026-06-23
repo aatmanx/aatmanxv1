@@ -67,7 +67,7 @@ function CompletePage() {
 
   return (
     <div className="min-h-screen bg-void text-foreground font-mono overflow-hidden">
-      <div className="fixed inset-0 grid-bg opacity-15 [mask-image:radial-gradient(ellipse_at_center,black_12%,transparent_72%)]" />
+      
       <div className="relative z-10 mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 py-16 text-center">
         <Link to="/" className="absolute left-6 top-8 inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
           <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_18px_var(--color-accent)]" />
