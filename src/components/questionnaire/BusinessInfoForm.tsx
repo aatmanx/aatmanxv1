@@ -2,7 +2,6 @@ import { Plus, X } from "lucide-react";
 import type { BusinessProfile, SocialLink } from "@/lib/questionnaire/types";
 
 const COUNTRY_CODES = ["+91", "+1", "+44", "+61", "+971", "+65", "+81", "+49"];
-
 const SOCIAL_PLATFORMS = ["Facebook", "Instagram", "LinkedIn", "YouTube", "X (Twitter)", "Custom Link"];
 
 type Props = {
@@ -33,12 +32,15 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
   return (
     <div>
       <div className="text-[11px] uppercase tracking-[0.3em] text-accent">step 02</div>
-      <h1 className="mt-5 text-3xl sm:text-5xl font-bold tracking-tighter leading-[1.05]">Business Information</h1>
-      <p className="mt-4 max-w-2xl text-sm text-muted-foreground leading-relaxed">
-        Provide your business details so we can personalize your website and prepare your business profile.
+      <h1 className="mt-4 text-3xl sm:text-4xl font-bold tracking-tighter leading-[1.05]">
+        Business Information
+      </h1>
+      <p className="mt-3 max-w-2xl text-sm text-muted-foreground leading-relaxed">
+        A few essentials so we can personalize your website. Use the arrows up top to move between steps.
       </p>
 
-      <div className="mt-10 space-y-6 max-w-2xl">
+      {/* Two-column equal-size grid */}
+      <div className="mt-10 grid gap-x-6 gap-y-5 md:grid-cols-2">
         <Field label="Business Name" required error={errors.business_name}>
           <input
             value={profile.business_name ?? ""}
@@ -53,21 +55,9 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
           <input
             value={profile.tagline ?? ""}
             onChange={(e) => onChange({ tagline: e.target.value })}
-            placeholder="Enter your business slogan (optional)"
+            placeholder="Optional"
             className={inputClass()}
           />
-        </Field>
-
-        <Field label="Business Description" required error={errors.description}>
-          <textarea
-            value={profile.description ?? ""}
-            onChange={(e) => onChange({ description: e.target.value.slice(0, 500) })}
-            placeholder="Briefly describe your business, products, services, and what makes you unique."
-            rows={4}
-            className={`${inputClass(errors.description)} resize-none min-h-28`}
-            aria-invalid={Boolean(errors.description)}
-          />
-          <div className="mt-1 text-[10px] text-muted-foreground text-right">{(profile.description ?? "").length}/500</div>
         </Field>
 
         <Field label="Contact Email" required error={errors.email}>
@@ -78,6 +68,7 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
             placeholder="you@company.com"
             className={inputClass(errors.email)}
             aria-invalid={Boolean(errors.email)}
+            autoComplete="email"
           />
         </Field>
 
@@ -97,12 +88,28 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
             </select>
             <input
               type="tel"
+              inputMode="tel"
               value={profile.phone ?? ""}
               onChange={(e) => onChange({ phone: e.target.value })}
-              placeholder="Phone number"
-              className={`${inputClass(errors.phone)} flex-1`}
+              placeholder="9876543210"
+              className={`${inputClass(errors.phone)} flex-1 min-w-0`}
               aria-invalid={Boolean(errors.phone)}
+              autoComplete="tel-national"
             />
+          </div>
+        </Field>
+
+        <Field label="Business Description" required error={errors.description} colspan>
+          <textarea
+            value={profile.description ?? ""}
+            onChange={(e) => onChange({ description: e.target.value.slice(0, 500) })}
+            placeholder="Briefly describe your business, products, services, and what makes you unique."
+            rows={3}
+            className={`${inputClass(errors.description)} resize-none`}
+            aria-invalid={Boolean(errors.description)}
+          />
+          <div className="mt-1 text-[10px] text-muted-foreground text-right">
+            {(profile.description ?? "").length}/500
           </div>
         </Field>
 
@@ -111,25 +118,31 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
             value={profile.address ?? ""}
             onChange={(e) => onChange({ address: e.target.value })}
             placeholder="Full business address"
-            rows={2}
+            rows={3}
             className={`${inputClass(errors.address)} resize-none`}
             aria-invalid={Boolean(errors.address)}
           />
         </Field>
 
         <Field label="Website Domain Preference">
-          <div className="flex items-center gap-0 rounded-md border border-border bg-background overflow-hidden focus-within:border-accent/60">
+          <div className="flex items-center rounded-md border border-border bg-background overflow-hidden focus-within:border-accent/60">
             <input
               value={profile.domain_preference ?? ""}
-              onChange={(e) => onChange({ domain_preference: e.target.value.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase() })}
+              onChange={(e) =>
+                onChange({
+                  domain_preference: e.target.value.replace(/[^a-zA-Z0-9-]/g, "").toLowerCase(),
+                })
+              }
               placeholder="examplebusiness"
-              className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
+              className="flex-1 min-w-0 bg-transparent px-3 py-2.5 text-sm outline-none"
             />
-            <span className="px-3 py-2.5 text-xs text-muted-foreground border-l border-border bg-card/40">.aatman.app</span>
+            <span className="px-3 py-2.5 text-xs text-muted-foreground border-l border-border bg-card/40 shrink-0">
+              .aatman.app
+            </span>
           </div>
         </Field>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="text-[11px] text-muted-foreground">Social Media Links (optional)</label>
           <div className="mt-2 flex flex-wrap gap-2">
             {SOCIAL_PLATFORMS.map((p) => (
@@ -144,17 +157,24 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
             ))}
           </div>
           {(profile.social_links ?? []).length > 0 && (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 grid gap-2 md:grid-cols-2">
               {(profile.social_links ?? []).map((link: SocialLink, i: number) => (
-                <div key={`${link.platform}-${i}`} className="flex gap-2">
-                  <span className="shrink-0 w-28 truncate text-[11px] text-muted-foreground pt-2.5">{link.platform}</span>
+                <div key={`${link.platform}-${i}`} className="flex items-center gap-2">
+                  <span className="shrink-0 w-24 truncate text-[11px] text-muted-foreground">
+                    {link.platform}
+                  </span>
                   <input
                     value={link.url}
                     onChange={(e) => updateSocialLink(i, e.target.value)}
                     placeholder="https://"
-                    className={`${inputClass()} flex-1`}
+                    className={`${inputClass()} flex-1 min-w-0`}
                   />
-                  <button type="button" onClick={() => removeSocialLink(i)} className="shrink-0 p-2 text-muted-foreground hover:text-destructive" aria-label="Remove link">
+                  <button
+                    type="button"
+                    onClick={() => removeSocialLink(i)}
+                    className="shrink-0 p-2 text-muted-foreground hover:text-destructive"
+                    aria-label="Remove link"
+                  >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -167,19 +187,37 @@ export function BusinessInfoForm({ profile, errors, onChange }: Props) {
   );
 }
 
-function Field({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  required,
+  error,
+  children,
+  colspan,
+}: {
+  label: string;
+  required?: boolean;
+  error?: string;
+  children: React.ReactNode;
+  colspan?: boolean;
+}) {
   return (
-    <div>
+    <div className={colspan ? "md:col-span-2" : ""}>
       <label className="text-[11px] text-muted-foreground">
         {label}
         {required && <span className="text-accent ml-1">*</span>}
       </label>
       <div className="mt-1.5">{children}</div>
-      {error && <p className="mt-1 text-[11px] text-destructive" role="alert">{error}</p>}
+      {error && (
+        <p className="mt-1 text-[11px] text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
 
 function inputClass(error?: string) {
-  return `w-full rounded-md border ${error ? "border-destructive/60" : "border-border"} bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:border-accent/60 transition`;
+  return `w-full rounded-md border ${
+    error ? "border-destructive/60" : "border-border"
+  } bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/60 transition`;
 }
