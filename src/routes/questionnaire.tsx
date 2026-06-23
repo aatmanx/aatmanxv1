@@ -144,7 +144,7 @@ function QuestionnairePage() {
 
   if (!ready || !state) {
     return (
-      <div className="min-h-screen bg-void text-foreground flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
@@ -152,6 +152,7 @@ function QuestionnairePage() {
 
   const isFeatureTimeline = currentQuestion?.type === "feature-timeline";
   const isLastQuestion = state.phase === "category-questions" && categoryConfig && state.stepIndex === categoryConfig.questions.length - 1;
+  const showTopNav = state.phase !== "category" && !isFeatureTimeline;
 
   return (
     <QuestionnaireShell
@@ -160,16 +161,21 @@ function QuestionnairePage() {
       stepKey={currentQuestion?.key}
       totalSteps={totalSteps}
       currentStep={currentStepNumber}
+      showNav={showTopNav}
+      onBack={goBack}
+      onNext={goNext}
+      backDisabled={state.phase === "category"}
+      nextDisabled={!canProceed}
       footer={
-        <QuestionnaireFooter
-          onBack={state.phase !== "category" ? goBack : undefined}
-          onNext={state.phase === "category" ? undefined : goNext}
-          backDisabled={state.phase === "category"}
-          nextDisabled={!canProceed}
-          isLast={Boolean(isLastQuestion && !isFeatureTimeline)}
-          hideNext={state.phase === "category" || isFeatureTimeline}
-          error={null}
-        />
+        isLastQuestion && !isFeatureTimeline ? (
+          <QuestionnaireFooter
+            onBack={goBack}
+            onNext={goNext}
+            nextDisabled={!canProceed}
+            isLast
+            error={null}
+          />
+        ) : null
       }
     >
       {state.phase === "category" && (
