@@ -15,6 +15,9 @@ type Props = {
   backDisabled?: boolean;
   nextDisabled?: boolean;
   showNav?: boolean;
+  syncing?: boolean;
+  nextLabel?: string;
+  nextLoading?: boolean;
 };
 
 export function QuestionnaireShell({
@@ -30,6 +33,9 @@ export function QuestionnaireShell({
   backDisabled,
   nextDisabled,
   showNav = true,
+  syncing = false,
+  nextLabel = "next",
+  nextLoading = false,
 }: Props) {
   return (
     <div className="min-h-screen bg-background text-foreground font-mono">
@@ -45,8 +51,10 @@ export function QuestionnaireShell({
           </Link>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block text-[11px] text-muted-foreground tabular-nums">
-              {String(currentStep).padStart(2, "0")}/{String(totalSteps).padStart(2, "0")} · {stepLabel}
+            <div className="hidden sm:flex sm:items-center sm:gap-3 text-[11px] text-muted-foreground tabular-nums">
+              <span className="font-semibold text-accent">{progressPercent}%</span>
+              <span>{String(currentStep).padStart(2, "0")}/{String(totalSteps).padStart(2, "0")} · {stepLabel}</span>
+              {syncing && <span className="text-[10px] text-accent/70">saving…</span>}
             </div>
             {showNav && (
               <div className="flex items-center gap-2">
@@ -62,12 +70,21 @@ export function QuestionnaireShell({
                 <button
                   type="button"
                   onClick={onNext}
-                  disabled={nextDisabled}
-                  aria-label="Next question"
+                  disabled={nextDisabled || nextLoading}
+                  aria-label={nextLabel === "finish" ? "Finish questionnaire" : "Next question"}
                   className="inline-flex h-9 items-center gap-2 rounded-full border border-accent/70 bg-foreground px-4 text-xs font-semibold text-background transition hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  next
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  {nextLoading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-background/30 border-t-background" />
+                      saving…
+                    </span>
+                  ) : (
+                    <>
+                      {nextLabel}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </>
+                  )}
                 </button>
               </div>
             )}

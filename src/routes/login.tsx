@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { getSafeNextPath } from "@/lib/auth/guards";
 import { persistOnboardingToDatabase } from "@/lib/auth/persist-onboarding";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign in — aatman" }] }),
@@ -36,14 +37,16 @@ function LoginPage() {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
       const { data } = await supabase.auth.getSession();
+      let redirectPath = nextPath;
       if (data.session) {
         try {
-          await persistOnboardingToDatabase(data.session.user.id);
+          const persistResult = await persistOnboardingToDatabase(data.session.user.id);
+          if (persistResult) redirectPath = "/dashboard";
         } catch {
           /* may not have onboarding state */
         }
       }
-      navigate({ href: nextPath, replace: true });
+      navigate({ href: redirectPath, replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in");
     } finally {
@@ -125,6 +128,17 @@ function LoginPage() {
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
         </button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <GoogleAuthButton mode="signin" disabled={loading} />
       </form>
 
       <p className="mt-8 text-sm text-muted-foreground">

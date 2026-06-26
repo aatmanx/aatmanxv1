@@ -1,15 +1,32 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, LogOut, Plus, Globe, CircleCheck, ArrowUpRight, Sparkles } from "lucide-react";
+import {
+  Building2,
+  ClipboardList,
+  Globe,
+  LayoutTemplate,
+  Loader2,
+  LogOut,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRequireAuth } from "@/lib/auth/guards";
-import { getUserWebsites } from "@/lib/auth/persist-onboarding";
+import { getPendingOnboardingForUser } from "@/lib/auth/persist-onboarding";
+import { getDashboardData } from "@/lib/dashboard/queries";
+import { DashboardCard, InfoRow } from "@/components/dashboard/DashboardCard";
+import {
+  ProgressTimeline,
+  WebsiteStatusBadge,
+  WelcomeCard,
+} from "@/components/dashboard/DashboardSections";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — aatman" },
-      { name: "description", content: "Manage your deployed business sites in the aatman dashboard." },
+      { name: "description", content: "Manage your real estate website project in the aatman dashboard." },
     ],
   }),
   component: DashboardPage,
@@ -20,9 +37,16 @@ function DashboardPage() {
   const queryClient = useQueryClient();
   const { userId, email, loading: authLoading } = useRequireAuth({ redirectTo: "/login" });
 
-  const { data: websites, isLoading: sitesLoading } = useQuery({
-    queryKey: ["websites", userId],
-    queryFn: () => getUserWebsites(userId!),
+  useEffect(() => {
+    if (!userId) return;
+    getPendingOnboardingForUser(userId).then((result) => {
+      if (result) queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
+    });
+  }, [userId, queryClient]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["dashboard", userId],
+    queryFn: () => getDashboardData(userId!),
     enabled: Boolean(userId),
   });
 
@@ -33,7 +57,7 @@ function DashboardPage() {
     navigate({ to: "/login", replace: true });
   };
 
-  if (authLoading || sitesLoading) {
+  if (authLoading || isLoading || !data) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -41,87 +65,109 @@ function DashboardPage() {
     );
   }
 
-  const siteList = websites ?? [];
+  const answers = (data.questionnaire?.answers_json as Record<string, unknown>) ?? {};
+  const profile = data.website?.website_json as { profile?: Record<string, unknown> } | null;
+  const automation = (answers.ai_auto_generate as string[]) ?? [];
 
   return (
     <div className="min-h-screen bg-background text-foreground font-mono">
-      <header className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2 text-sm">
-            <span className="h-2 w-2 rounded-full bg-foreground" />
+            <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_12px_var(--color-accent)]" />
             <span className="font-semibold">aatman</span>
             <span className="text-muted-foreground hidden sm:inline">/ dashboard</span>
           </Link>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline text-xs text-muted-foreground">{email}</span>
-            <button onClick={handleSignOut} className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/40 px-3 py-1.5 text-xs hover:bg-card transition">
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/40 px-3 py-1.5 text-xs hover:bg-card transition"
+            >
               <LogOut className="h-3.5 w-3.5" /> sign out
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <div className="text-xs text-muted-foreground">// welcome_back</div>
-            <h1 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tighter">{email?.split("@")[0] ?? "operator"}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Your websites, generations and analytics — in one place.</p>
+      <main className="mx-auto max-w-7xl px-6 py-8 sm:py-10 space-y-6">
+        <WelcomeCard email={email} data={data} />
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <DashboardCard title="Business Information" icon={<Building2 className="h-3.5 w-3.5 text-muted-foreground" />}>
+              <InfoRow label="Business name" value={data.business?.business_name as string} />
+              <InfoRow label="Business type" value={answers.business_type as string} />
+              <InfoRow label="Primary location" value={answers.primary_location as string} />
+              <InfoRow label="Website goal" value={answers.website_goal as string} />
+              <InfoRow label="Description" value={(answers.business_description as string)?.slice(0, 120)} />
+            </DashboardCard>
+
+            <DashboardCard title="Questionnaire Summary" icon={<ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />}>
+              {data.questionnaire ? (
+                <>
+                  <InfoRow label="Status" value={data.questionnaire.status} />
+                  <InfoRow label="Progress" value={`${data.questionnaire.progress_percent}%`} />
+                  <InfoRow label="Completed" value={data.questionnaire.completed_at ? new Date(data.questionnaire.completed_at).toLocaleDateString() : undefined} />
+                  <InfoRow label="Services" value={(answers.services as string[])?.join(", ")} />
+                  <InfoRow label="Property types" value={(answers.property_types as string[])?.join(", ")} />
+                  <InfoRow label="AI automation" value={automation.join(", ")} />
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">No completed questionnaire yet.</p>
+              )}
+            </DashboardCard>
           </div>
-          <button onClick={() => navigate({ to: "/questionnaire" })} className="inline-flex items-center gap-2 rounded-md border border-accent/70 bg-foreground text-background px-4 py-2.5 text-sm font-semibold hover:bg-foreground/90 transition">
-            <Plus className="h-4 w-4" /> new site
-          </button>
+
+          <div className="space-y-6">
+            <DashboardCard title="Industry" icon={<Sparkles className="h-3.5 w-3.5 text-muted-foreground" />}>
+              <InfoRow label="Industry" value={data.questionnaire?.industry ?? "real-estate"} />
+              <InfoRow label="Category" value={data.business?.category} />
+            </DashboardCard>
+
+            <DashboardCard title="Template Category" icon={<LayoutTemplate className="h-3.5 w-3.5 text-muted-foreground" />}>
+              <InfoRow label="Category" value={data.questionnaire?.template_category} />
+              <InfoRow label="Website style" value={answers.website_style as string} />
+              <InfoRow label="Color style" value={answers.color_style as string} />
+            </DashboardCard>
+
+            <DashboardCard title="Website Status" icon={<Globe className="h-3.5 w-3.5 text-muted-foreground" />}>
+              <div className="flex items-center justify-between mb-4">
+                <WebsiteStatusBadge data={data} />
+                {data.website?.slug && (
+                  <span className="text-xs text-muted-foreground">{data.website.slug}.aatman.app</span>
+                )}
+              </div>
+              <InfoRow label="DB status" value={data.website?.status} />
+              <InfoRow label="Profile ready" value={profile?.profile ? "Yes" : "No"} />
+            </DashboardCard>
+          </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden border border-border">
-          {[
-            { l: "websites", v: String(siteList.length) },
-            { l: "generating", v: String(siteList.filter((s) => s.status === "generating").length) },
-            { l: "published", v: String(siteList.filter((s) => s.status === "published").length) },
-            { l: "ready", v: String(siteList.filter((s) => s.status === "ready").length) },
-          ].map((s) => (
-            <div key={s.l} className="bg-background p-6">
-              <div className="text-3xl font-bold tracking-tighter">{s.v}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{s.l}</div>
-            </div>
-          ))}
-        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <DashboardCard title="Progress Timeline" icon={<Sparkles className="h-3.5 w-3.5 text-muted-foreground" />}>
+            <ProgressTimeline data={data} />
+          </DashboardCard>
 
-        <div className="mt-6 rounded-2xl border border-border bg-card/40 backdrop-blur">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Globe className="h-3.5 w-3.5" /> your_sites
+          <DashboardCard title="Account Settings" icon={<Settings className="h-3.5 w-3.5 text-muted-foreground" />}>
+            <InfoRow label="Email" value={email} />
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link to="/account" className="text-xs rounded-md border border-border px-3 py-2 hover:border-accent/40 transition">
+                Account settings
+              </Link>
+              <Link to="/billing" className="text-xs rounded-md border border-border px-3 py-2 hover:border-accent/40 transition">
+                Billing
+              </Link>
+              {data.website && (
+                <button
+                  onClick={() => navigate({ to: "/editor", search: { id: data.website!.id } })}
+                  className="text-xs rounded-md border border-accent/50 px-3 py-2 hover:bg-accent/10 transition"
+                >
+                  Open editor
+                </button>
+              )}
             </div>
-          </div>
-          {siteList.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <Sparkles className="mx-auto h-8 w-8 text-muted-foreground" />
-              <p className="mt-4 text-sm text-muted-foreground">No websites yet. Complete the questionnaire to generate your first site.</p>
-              <button onClick={() => navigate({ to: "/questionnaire" })} className="mt-6 inline-flex items-center gap-2 rounded-md border border-accent/70 bg-foreground text-background px-4 py-2 text-sm font-semibold">
-                start questionnaire
-              </button>
-            </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {siteList.map((site) => {
-                const biz = site.businesses as { business_name?: string; category?: string } | null;
-                return (
-                  <li key={site.id} className="flex items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <CircleCheck className={`h-4 w-4 shrink-0 ${site.status === "published" || site.status === "ready" ? "text-accent" : "text-muted-foreground animate-pulse"}`} />
-                      <div className="min-w-0">
-                        <div className="text-sm truncate">{site.slug ? `${site.slug}.aatman.app` : biz?.business_name ?? "Untitled"}</div>
-                        <div className="text-[11px] text-muted-foreground">{biz?.category ?? site.status}</div>
-                      </div>
-                    </div>
-                    <button onClick={() => navigate({ to: "/editor", search: { id: site.id } })} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                      open <ArrowUpRight className="h-3 w-3" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          </DashboardCard>
         </div>
       </main>
     </div>

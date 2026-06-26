@@ -1,0 +1,31 @@
+{
+  "id": "real-estate/commercial-v1",
+  "name": "Commercial Real Estate",
+  "industry": "real-estate",
+  "category": "commercial",
+  "version": "1.0.0",
+  "status": "placeholder",
+  "description": "Commercial property platforms for offices, retail, and industrial assets.",
+  "supportedFeatures": [
+    "commercial listings",
+    "space calculator",
+    "tenant inquiry",
+    "location maps",
+    "brochure downloads"
+  ],
+  "pages": [
+    "home",
+    "about",
+    "properties",
+    "contact"
+  ],
+  "components": [
+    "hero",
+    "property-grid",
+    "team",
+    "contact-form",
+    "footer"
+  ],
+  "rootPath": "templates/real-estate/commercial-v1",
+  "importPath": "templates/real-estate/commercial-v1/IMPORT_HERE"
+}

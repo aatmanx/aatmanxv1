@@ -1,0 +1,15 @@
+{
+  "businessName": "Sample Property Management",
+  "templateCategory": "management",
+  "hero": {
+    "title": "Find your next property",
+    "subtitle": "Premium real estate services"
+  },
+  "properties": [
+    {
+      "title": "Sample Property",
+      "price": "₹1.2 Cr",
+      "location": "Bangalore"
+    }
+  ]
+}

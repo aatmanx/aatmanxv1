@@ -1,0 +1,31 @@
+{
+  "id": "real-estate/luxury-v1",
+  "name": "Luxury Real Estate",
+  "industry": "real-estate",
+  "category": "luxury",
+  "version": "1.0.0",
+  "status": "placeholder",
+  "description": "High-end property marketing with editorial layouts and premium visual storytelling.",
+  "supportedFeatures": [
+    "luxury listings",
+    "editorial hero",
+    "private showings",
+    "concierge contact",
+    "video backgrounds"
+  ],
+  "pages": [
+    "home",
+    "about",
+    "properties",
+    "contact"
+  ],
+  "components": [
+    "hero",
+    "property-grid",
+    "team",
+    "contact-form",
+    "footer"
+  ],
+  "rootPath": "templates/real-estate/luxury-v1",
+  "importPath": "templates/real-estate/luxury-v1/IMPORT_HERE"
+}

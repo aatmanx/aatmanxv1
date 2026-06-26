@@ -1,27 +1,32 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { BusinessInfoForm } from "@/components/questionnaire/BusinessInfoForm";
-import { CategorySelect } from "@/components/questionnaire/CategorySelect";
 import { isQuestionAnswered, QuestionRenderer } from "@/components/questionnaire/QuestionRenderer";
-import { QuestionnaireFooter } from "@/components/questionnaire/QuestionnaireFooter";
 import { QuestionnaireShell } from "@/components/questionnaire/QuestionnaireShell";
-import { getQuestionnaireForCategory, getProgressPercent } from "@/lib/questionnaire/categories";
-import { BUSINESS_CATEGORIES } from "@/lib/questionnaire/types";
-import type { OnboardingState, QuestionnaireAnswers } from "@/lib/questionnaire/types";
+import {
+  getProgressPercent,
+  getQuestionByIndex,
+  getTotalQuestionCount,
+  getVisibleQuestions,
+} from "@/lib/questionnaire/questions/real-estate-questions";
+import type { QuestionnaireAnswers, QuestionnaireState } from "@/lib/questionnaire/types";
+import { mapBusinessTypeToTemplate } from "@/lib/questionnaire/template-mapping";
+import { clampStepIndex, getValidationError } from "@/lib/questionnaire/validation";
 import {
   createInitialState,
+  deriveStatus,
   loadState,
   saveState,
   setupLeaveGuard,
-  validateBusinessProfile,
 } from "@/lib/questionnaire/storage";
+import { syncQuestionnaireToDatabase } from "@/lib/questionnaire/persistence";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/questionnaire")({
   head: () => ({
     meta: [
-      { title: "Website questionnaire — aatman" },
-      { name: "description", content: "Answer a structured intake so aatman can generate your business website." },
+      { title: "Real Estate Questionnaire — aatman" },
+      { name: "description", content: "Complete the real estate intake questionnaire to generate your business website." },
     ],
   }),
   component: QuestionnairePage,
@@ -29,15 +34,28 @@ export const Route = createFileRoute("/questionnaire")({
 
 function QuestionnairePage() {
   const navigate = useNavigate();
-  const [state, setState] = useState<OnboardingState | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [state, setState] = useState<QuestionnaireState | null>(null);
   const [ready, setReady] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
-    const existing = loadState();
-    setState(existing ?? createInitialState());
+    const loaded = loadState();
+    if (!loaded) {
+      setState(createInitialState());
+      setReady(true);
+      return;
+    }
+
+    if (loaded.status === "completed") {
+      navigate({ to: "/questionnaire/complete", replace: true });
+      return;
+    }
+
+    setState(loaded);
     setReady(true);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (!state) return;
@@ -46,101 +64,120 @@ function QuestionnairePage() {
 
   useEffect(() => setupLeaveGuard(Boolean(state)), [state]);
 
-  const categoryConfig = useMemo(() => {
-    if (!state?.businessProfile.category) return null;
-    return getQuestionnaireForCategory(state.businessProfile.category);
-  }, [state?.businessProfile.category]);
+  const visibleQuestions = useMemo(
+    () => (state ? getVisibleQuestions(state.answers) : []),
+    [state?.answers, state],
+  );
 
-  const totalSteps = 2 + (categoryConfig?.questions.length ?? 8);
-  const progressPercent = state
-    ? getProgressPercent(state.phase, state.stepIndex, categoryConfig?.questions.length ?? 8)
-    : 0;
+  const currentQuestion = state ? getQuestionByIndex(state.stepIndex, state.answers) : null;
+  const totalSteps = state ? getTotalQuestionCount(state.answers) : 0;
+  const progressPercent = state ? getProgressPercent(state.stepIndex, state.answers) : 0;
 
-  const currentQuestion = state?.phase === "category-questions" ? categoryConfig?.questions[state.stepIndex] : null;
+  const persistAnswer = useCallback(
+    async (nextState: QuestionnaireState, questionKey?: string) => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.user) return nextState;
 
-  const updateState = useCallback((patch: Partial<OnboardingState>) => {
-    setState((prev) => (prev ? { ...prev, ...patch } : prev));
-  }, []);
+      setSyncing(true);
+      try {
+        const question = questionKey ? visibleQuestions.find((q) => q.key === questionKey) : currentQuestion ?? undefined;
+        return await syncQuestionnaireToDatabase(nextState, data.session.user.id, question);
+      } catch {
+        return nextState;
+      } finally {
+        setSyncing(false);
+      }
+    },
+    [visibleQuestions, currentQuestion],
+  );
 
-  const handleCategorySelect = (categoryId: string) => {
-    const cat = BUSINESS_CATEGORIES.find((c) => c.id === categoryId);
-    updateState({
-      businessProfile: { ...state!.businessProfile, category: categoryId },
-      phase: "business-info",
-    });
-  };
+  const updateAnswer = useCallback(
+    async (key: string, value: unknown) => {
+      if (!state) return;
 
-  const handleBusinessInfoNext = () => {
-    const profile = state!.businessProfile;
-    const validationErrors = validateBusinessProfile(profile);
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
-    updateState({ phase: "category-questions", stepIndex: 0, featureTimelineStep: 0 });
-  };
+      const answers: QuestionnaireAnswers = { ...state.answers, [key]: value };
+      let templateCategory = state.templateCategory;
 
-  const handleAnswerChange = (key: string, value: unknown) => {
-    updateState({
-      questionnaireAnswers: { ...state!.questionnaireAnswers, [key]: value } as QuestionnaireAnswers,
-    });
-  };
+      if (key === "business_type" && typeof value === "string") {
+        templateCategory = mapBusinessTypeToTemplate(value);
+      }
+
+      let nextState: QuestionnaireState = {
+        ...state,
+        answers,
+        templateCategory,
+        status: deriveStatus(state.stepIndex, totalSteps, false),
+      };
+
+      if (state.status === "draft" && state.stepIndex >= 0) {
+        nextState.status = "in_progress";
+      }
+
+      const visibleAfter = getVisibleQuestions(answers);
+      const clampedIndex = clampStepIndex(state.stepIndex, answers, getVisibleQuestions);
+      if (clampedIndex !== state.stepIndex) {
+        nextState = { ...nextState, stepIndex: clampedIndex };
+      }
+
+      setState(nextState);
+      setValidationError(null);
+
+      const synced = await persistAnswer(nextState, key);
+      setState(synced);
+    },
+    [state, totalSteps, persistAnswer],
+  );
 
   const canProceed = useMemo(() => {
-    if (!state) return false;
-    if (state.phase === "category") return Boolean(state.businessProfile.category);
-    if (state.phase === "business-info") return Object.keys(validateBusinessProfile(state.businessProfile)).length === 0;
-    if (currentQuestion) return isQuestionAnswered(currentQuestion, state.questionnaireAnswers);
-    return false;
+    if (!state || !currentQuestion) return false;
+    return isQuestionAnswered(currentQuestion, state.answers);
   }, [state, currentQuestion]);
 
-  const goNext = () => {
-    if (!state) return;
-    if (state.phase === "business-info") {
-      handleBusinessInfoNext();
+  const goNext = async () => {
+    if (!state || !currentQuestion || completing) return;
+
+    if (!canProceed) {
+      setValidationError(getValidationError(currentQuestion, state.answers));
       return;
     }
-    if (state.phase === "category-questions" && categoryConfig) {
-      if (currentQuestion?.type === "feature-timeline") return;
-      const isLast = state.stepIndex >= categoryConfig.questions.length - 1;
-      if (isLast) {
-        navigate({ to: "/questionnaire/complete" });
-        return;
+
+    setValidationError(null);
+    const isLast = state.stepIndex >= totalSteps - 1;
+
+    if (isLast) {
+      setCompleting(true);
+      const completedState: QuestionnaireState = { ...state, status: "completed" };
+      setState(completedState);
+      saveState(completedState);
+
+      try {
+        await persistAnswer(completedState);
+      } catch {
+        /* local state is saved — completion page can retry DB persist */
       }
-      updateState({ stepIndex: state.stepIndex + 1, featureTimelineStep: 0 });
+
+      navigate({ to: "/questionnaire/complete" });
+      return;
     }
+
+    const nextState: QuestionnaireState = {
+      ...state,
+      stepIndex: state.stepIndex + 1,
+      status: "in_progress",
+    };
+    setState(nextState);
+    const synced = await persistAnswer(nextState);
+    setState(synced);
   };
 
   const goBack = () => {
     if (!state) return;
-    if (state.phase === "business-info") {
-      updateState({ phase: "category" });
-      return;
-    }
-    if (state.phase === "category-questions") {
-      if (state.stepIndex === 0) {
-        updateState({ phase: "business-info" });
-        return;
-      }
-      updateState({ stepIndex: state.stepIndex - 1, featureTimelineStep: 0 });
-    }
+    if (state.stepIndex === 0) return;
+
+    const nextIndex = state.stepIndex - 1;
+    setState({ ...state, stepIndex: nextIndex });
+    setValidationError(null);
   };
-
-  const handleFeatureTimelineFinish = () => {
-    navigate({ to: "/questionnaire/complete" });
-  };
-
-  const currentStepNumber = useMemo(() => {
-    if (!state) return 1;
-    if (state.phase === "category") return 1;
-    if (state.phase === "business-info") return 2;
-    return 3 + state.stepIndex;
-  }, [state]);
-
-  const stepLabel = useMemo(() => {
-    if (!state) return "Loading...";
-    if (state.phase === "category") return "Select category";
-    if (state.phase === "business-info") return "Business information";
-    return `Question ${state.stepIndex + 1} of ${categoryConfig?.questions.length ?? 8}`;
-  }, [state, categoryConfig]);
 
   if (!ready || !state) {
     return (
@@ -150,51 +187,42 @@ function QuestionnairePage() {
     );
   }
 
-  const isFeatureTimeline = currentQuestion?.type === "feature-timeline";
-  const isLastQuestion = state.phase === "category-questions" && categoryConfig && state.stepIndex === categoryConfig.questions.length - 1;
-  const showTopNav = state.phase !== "category" && !isFeatureTimeline;
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center gap-4">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Restoring questionnaire…</p>
+      </div>
+    );
+  }
+
+  const isLastStep = state.stepIndex >= totalSteps - 1;
+
+  const stepLabel = `${currentQuestion.sectionTitle} · Question ${state.stepIndex + 1} of ${totalSteps}`;
 
   return (
     <QuestionnaireShell
       progressPercent={progressPercent}
       stepLabel={stepLabel}
-      stepKey={currentQuestion?.key}
+      stepKey={currentQuestion.key}
       totalSteps={totalSteps}
-      currentStep={currentStepNumber}
-      showNav={showTopNav}
+      currentStep={state.stepIndex + 1}
+      syncing={syncing || completing}
+      nextLabel={isLastStep ? "finish" : "next"}
+      nextLoading={completing}
       onBack={goBack}
       onNext={goNext}
-      backDisabled={state.phase === "category"}
-      nextDisabled={!canProceed}
-      footer={
-        isLastQuestion && !isFeatureTimeline ? (
-          <QuestionnaireFooter
-            onBack={goBack}
-            onNext={goNext}
-            nextDisabled={!canProceed}
-            isLast
-            error={null}
-          />
-        ) : null
-      }
+      backDisabled={state.stepIndex === 0 || completing}
+      nextDisabled={!canProceed || completing}
     >
-      {state.phase === "category" && (
-        <CategorySelect categories={BUSINESS_CATEGORIES} selected={state.businessProfile.category} onSelect={handleCategorySelect} />
-      )}
-
-      {state.phase === "business-info" && (
-        <BusinessInfoForm profile={state.businessProfile} errors={errors} onChange={(updates) => updateState({ businessProfile: { ...state.businessProfile, ...updates } })} />
-      )}
-
-      {state.phase === "category-questions" && currentQuestion && (
-        <QuestionRenderer
-          question={currentQuestion}
-          answers={state.questionnaireAnswers}
-          featureTimelineStep={state.featureTimelineStep ?? 0}
-          onAnswerChange={handleAnswerChange}
-          onFeatureTimelineStepChange={(step) => updateState({ featureTimelineStep: step })}
-          onFeatureTimelineFinish={handleFeatureTimelineFinish}
-        />
+      <QuestionRenderer
+        question={currentQuestion}
+        answers={state.answers}
+        onAnswerChange={updateAnswer}
+        error={validationError ?? undefined}
+      />
+      {validationError && currentQuestion.type !== "text" && currentQuestion.type !== "textarea" && (
+        <p className="mt-6 text-sm text-destructive">{validationError}</p>
       )}
     </QuestionnaireShell>
   );

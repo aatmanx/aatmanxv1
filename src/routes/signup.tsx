@@ -5,6 +5,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { AuthShell } from "./login";
 import { getSafeNextPath } from "@/lib/auth/guards";
 import { persistOnboardingToDatabase } from "@/lib/auth/persist-onboarding";
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Create your account — aatman" }] }),
@@ -44,13 +45,14 @@ function SignupPage() {
       if (signUpError) throw signUpError;
 
       if (data.session) {
-        // Auto sign-in — try to persist onboarding then continue
+        let redirectPath = nextPath;
         try {
-          await persistOnboardingToDatabase(data.session.user.id);
+          const persistResult = await persistOnboardingToDatabase(data.session.user.id);
+          if (persistResult) redirectPath = "/dashboard";
         } catch {
           /* may not have onboarding state */
         }
-        navigate({ href: nextPath, replace: true });
+        navigate({ href: redirectPath, replace: true });
         return;
       }
 
@@ -142,6 +144,17 @@ function SignupPage() {
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
         </button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <GoogleAuthButton mode="signup" disabled={loading} />
       </form>
 
       <p className="mt-8 text-sm text-muted-foreground">
