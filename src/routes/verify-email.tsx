@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, MailCheck, RefreshCw } from "lucide-react";
 import { getSafeNextPath } from "@/lib/auth/guards";
+import { getPendingOnboardingForUser } from "@/lib/auth/persist-onboarding";
 
 export const Route = createFileRoute("/verify-email")({
   head: () => ({ meta: [{ title: "Verify email — aatman" }] }),
@@ -19,13 +20,22 @@ function VerifyEmailPage() {
   const nextPath = getSafeNextPath("/dashboard");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
         navigate({ href: "/login", replace: true });
         return;
       }
       setEmail(data.session.user.email ?? null);
       setVerified(Boolean(data.session.user.email_confirmed_at));
+
+      if (data.session.user.email_confirmed_at) {
+        try {
+          await getPendingOnboardingForUser(data.session.user.id);
+        } catch {
+          /* optional */
+        }
+      }
+
       setLoading(false);
     });
 

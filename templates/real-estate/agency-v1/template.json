@@ -1,0 +1,31 @@
+{
+  "id": "real-estate/agency-v1",
+  "name": "Real Estate Agency",
+  "industry": "real-estate",
+  "category": "agency",
+  "version": "1.0.0",
+  "status": "placeholder",
+  "description": "Brokerage and agency websites with property listings, team showcase, and lead capture.",
+  "supportedFeatures": [
+    "property listings",
+    "team profiles",
+    "contact forms",
+    "site visit booking",
+    "testimonials"
+  ],
+  "pages": [
+    "home",
+    "about",
+    "properties",
+    "contact"
+  ],
+  "components": [
+    "hero",
+    "property-grid",
+    "team",
+    "contact-form",
+    "footer"
+  ],
+  "rootPath": "templates/real-estate/agency-v1",
+  "importPath": "templates/real-estate/agency-v1/IMPORT_HERE"
+}

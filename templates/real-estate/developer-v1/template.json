@@ -1,0 +1,31 @@
+{
+  "id": "real-estate/developer-v1",
+  "name": "Property Developer",
+  "industry": "real-estate",
+  "category": "developer",
+  "version": "1.0.0",
+  "status": "placeholder",
+  "description": "Developer and builder sites highlighting projects, timelines, and investment opportunities.",
+  "supportedFeatures": [
+    "project showcase",
+    "timeline",
+    "floor plans",
+    "lead capture",
+    "investor CTA"
+  ],
+  "pages": [
+    "home",
+    "about",
+    "properties",
+    "contact"
+  ],
+  "components": [
+    "hero",
+    "property-grid",
+    "team",
+    "contact-form",
+    "footer"
+  ],
+  "rootPath": "templates/real-estate/developer-v1",
+  "importPath": "templates/real-estate/developer-v1/IMPORT_HERE"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "real-estate/management-v1",
+  "name": "Property Management",
+  "industry": "real-estate",
+  "category": "management",
+  "version": "1.0.0",
+  "status": "placeholder",
+  "description": "Property management company sites with service pages and tenant portals.",
+  "supportedFeatures": [
+    "service pages",
+    "tenant portal link",
+    "maintenance requests",
+    "owner login",
+    "FAQ"
+  ],
+  "pages": [
+    "home",
+    "about",
+    "properties",
+    "contact"
+  ],
+  "components": [
+    "hero",
+    "property-grid",
+    "team",
+    "contact-form",
+    "footer"
+  ],
+  "rootPath": "templates/real-estate/management-v1",
+  "importPath": "templates/real-estate/management-v1/IMPORT_HERE"
+}

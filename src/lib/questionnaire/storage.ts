@@ -1,42 +1,43 @@
-import type { OnboardingState } from "./types";
-import { EMPTY_BUSINESS_PROFILE } from "./types";
+import type { QuestionnaireState } from "./types";
+import { getDefaultAnswers } from "./json-generator";
+import { getVisibleQuestions } from "./questions/real-estate-questions";
+import { clampStepIndex } from "./validation";
 
-const STORAGE_KEY = "aatman.onboarding.v1";
-const LEAVE_GUARD_KEY = "aatman.onboarding.dirty";
+const STORAGE_KEY = "aatman.questionnaire.v2";
+const LEAVE_GUARD_KEY = "aatman.questionnaire.dirty";
 
-export function getSessionId(): string {
-  const existing = loadState()?.sessionId;
-  if (existing) return existing;
-  return crypto.randomUUID();
-}
-
-export function createInitialState(): OnboardingState {
+export function createInitialState(): QuestionnaireState {
   return {
-    version: 1,
+    version: 2,
     sessionId: crypto.randomUUID(),
-    phase: "category",
+    industry: "real-estate",
     stepIndex: 0,
-    featureTimelineStep: 0,
-    businessProfile: { ...EMPTY_BUSINESS_PROFILE },
-    questionnaireAnswers: {},
+    answers: getDefaultAnswers(),
+    status: "draft",
     updatedAt: new Date().toISOString(),
   };
 }
 
-export function loadState(): OnboardingState | null {
+export function normalizeLoadedState(state: QuestionnaireState): QuestionnaireState {
+  const answers = { ...getDefaultAnswers(), ...state.answers };
+  const stepIndex = clampStepIndex(state.stepIndex, answers, getVisibleQuestions);
+  return { ...state, answers, stepIndex };
+}
+
+export function loadState(): QuestionnaireState | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as OnboardingState;
-    if (parsed.version !== 1) return null;
-    return parsed;
+    const parsed = JSON.parse(raw) as QuestionnaireState;
+    if (parsed.version !== 2) return null;
+    return normalizeLoadedState(parsed);
   } catch {
     return null;
   }
 }
 
-export function saveState(state: OnboardingState): void {
+export function saveState(state: QuestionnaireState): void {
   if (typeof window === "undefined") return;
   const next = { ...state, updatedAt: new Date().toISOString() };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
@@ -56,12 +57,6 @@ export function hasUnsavedProgress(): boolean {
   return localStorage.getItem(LEAVE_GUARD_KEY) === "1";
 }
 
-export function markDirty(): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(LEAVE_GUARD_KEY, "1");
-  }
-}
-
 export function setupLeaveGuard(enabled: boolean): () => void {
   if (typeof window === "undefined") return () => undefined;
 
@@ -75,23 +70,8 @@ export function setupLeaveGuard(enabled: boolean): () => void {
   return () => window.removeEventListener("beforeunload", handler);
 }
 
-export function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
-
-export function isValidPhone(phone: string): boolean {
-  return /^[\d\s\-()+ ]{6,}$/.test(phone.trim());
-}
-
-export function validateBusinessProfile(profile: Partial<import("./types").BusinessProfile>): Record<string, string> {
-  const errors: Record<string, string> = {};
-  if (!profile.business_name?.trim()) errors.business_name = "Business name is required";
-  if (!profile.description?.trim()) errors.description = "Description is required";
-  else if (profile.description.length > 500) errors.description = "Description must be 500 characters or less";
-  if (!profile.email?.trim()) errors.email = "Email is required";
-  else if (!isValidEmail(profile.email)) errors.email = "Enter a valid email address";
-  if (!profile.phone?.trim()) errors.phone = "Phone number is required";
-  else if (!isValidPhone(profile.phone)) errors.phone = "Enter a valid phone number";
-  if (!profile.address?.trim()) errors.address = "Address is required";
-  return errors;
+export function deriveStatus(stepIndex: number, totalSteps: number, isComplete: boolean): QuestionnaireState["status"] {
+  if (isComplete) return "completed";
+  if (stepIndex > 0) return "in_progress";
+  return "draft";
 }

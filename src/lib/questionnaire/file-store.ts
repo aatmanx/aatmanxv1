@@ -57,46 +57,93 @@ export async function deleteFileFromIndexedDB(id: string): Promise<void> {
   });
 }
 
-export async function uploadPendingFiles(
+type FileMeta = {
+  id: string;
+  category: string;
+  name: string;
+  type: string;
+  size: number;
+  local_key?: string;
+  storage_path?: string;
+  url?: string;
+};
+
+const FILE_ANSWER_KEYS = ["logo_upload", "media_uploads", "team_members"];
+
+async function uploadFileMeta(
+  userId: string,
+  fileMeta: FileMeta,
+  questionKey: string,
+): Promise<FileMeta> {
+  if (!fileMeta.local_key) return fileMeta;
+
+  const stored = await getFileFromIndexedDB(fileMeta.local_key);
+  if (!stored) return fileMeta;
+
+  const { supabase } = await import("@/integrations/supabase/client");
+  const path = `${userId}/${questionKey}/${crypto.randomUUID()}-${stored.name}`;
+  const { error } = await supabase.storage.from("questionnaire-assets").upload(path, stored.blob, {
+    contentType: stored.type,
+    upsert: false,
+  });
+
+  if (error) return fileMeta;
+
+  const { data: urlData } = supabase.storage.from("questionnaire-assets").getPublicUrl(path);
+  await deleteFileFromIndexedDB(fileMeta.local_key);
+
+  return {
+    ...fileMeta,
+    local_key: undefined,
+    storage_path: path,
+    url: urlData.publicUrl,
+  };
+}
+
+async function uploadFileRecord(
+  userId: string,
+  record: Record<string, FileMeta[]>,
+  questionKey: string,
+): Promise<Record<string, FileMeta[]>> {
+  const updated: Record<string, FileMeta[]> = {};
+  for (const [category, files] of Object.entries(record)) {
+    updated[category] = await Promise.all(files.map((f) => uploadFileMeta(userId, f, questionKey)));
+  }
+  return updated;
+}
+
+export async function uploadAllPendingFiles(
   userId: string,
   answers: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  const assets = answers.business_assets as Record<string, Array<{ id: string; local_key?: string; name: string; type: string; size: number; category: string }>> | undefined;
-  if (!assets) return answers;
+  const result = { ...answers };
 
-  const { supabase } = await import("@/integrations/supabase/client");
-  const updated: Record<string, unknown[]> = {};
+  for (const key of FILE_ANSWER_KEYS) {
+    const value = answers[key];
+    if (!value) continue;
 
-  for (const [category, files] of Object.entries(assets)) {
-    updated[category] = [];
-    for (const fileMeta of files) {
-      if (fileMeta.local_key) {
-        const stored = await getFileFromIndexedDB(fileMeta.local_key);
-        if (stored) {
-          const path = `${userId}/${crypto.randomUUID()}-${stored.name}`;
-          const { error } = await supabase.storage.from("questionnaire-assets").upload(path, stored.blob, {
-            contentType: stored.type,
-            upsert: false,
-          });
-          if (!error) {
-            const { data: urlData } = supabase.storage.from("questionnaire-assets").getPublicUrl(path);
-            updated[category].push({
-              id: fileMeta.id,
-              category: fileMeta.category,
-              name: fileMeta.name,
-              type: fileMeta.type,
-              size: fileMeta.size,
-              storage_path: path,
-              url: urlData.publicUrl,
-            });
-            await deleteFileFromIndexedDB(fileMeta.local_key);
+    if (key === "team_members" && Array.isArray(value)) {
+      result[key] = await Promise.all(
+        value.map(async (member) => {
+          const m = member as { photo?: FileMeta | null; [k: string]: unknown };
+          if (m.photo?.local_key) {
+            const uploaded = await uploadFileMeta(userId, m.photo, key);
+            return { ...m, photo: uploaded };
           }
-        }
-      } else {
-        updated[category].push(fileMeta);
-      }
+          return member;
+        }),
+      );
+      continue;
+    }
+
+    if (typeof value === "object" && !Array.isArray(value)) {
+      result[key] = await uploadFileRecord(userId, value as Record<string, FileMeta[]>, key);
     }
   }
 
-  return { ...answers, business_assets: updated };
+  return result;
+}
+
+export function emptyFileAssets(): Record<string, never> {
+  return {};
 }

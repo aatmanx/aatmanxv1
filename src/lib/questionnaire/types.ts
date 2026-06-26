@@ -1,26 +1,6 @@
-export type SocialLink = {
-  platform: string;
-  url: string;
-};
+export type QuestionnaireStatus = "draft" | "in_progress" | "completed" | "processing" | "generated";
 
-export type BusinessProfile = {
-  category: string;
-  business_name: string;
-  tagline: string;
-  description: string;
-  email: string;
-  phone: string;
-  phone_country_code: string;
-  address: string;
-  domain_preference: string;
-  social_links: SocialLink[];
-};
-
-export type ColorScheme = {
-  primary: string;
-  secondary: string;
-  accent: string;
-};
+export type TemplateCategory = "agency" | "developer" | "luxury" | "commercial" | "management";
 
 export type FileAsset = {
   id: string;
@@ -31,96 +11,114 @@ export type FileAsset = {
   url?: string;
   storage_path?: string;
   local_key?: string;
+  preview?: string;
 };
 
-export type MultiSelectAnswer = {
-  selected: string[];
-  custom: string[];
+export type TeamMember = {
+  id: string;
+  photo?: FileAsset | null;
+  name: string;
+  designation: string;
+  phone: string;
+  email: string;
 };
-
-export type FeatureTimelineAnswer = Record<string, string[]>;
 
 export type QuestionnaireAnswers = Record<string, unknown>;
 
-export type OnboardingPhase = "category" | "business-info" | "category-questions";
-
-export type OnboardingState = {
-  version: 1;
+export type QuestionnaireState = {
+  version: 2;
   sessionId: string;
-  phase: OnboardingPhase;
+  questionnaireId?: string;
+  industry: "real-estate";
   stepIndex: number;
-  featureTimelineStep?: number;
-  businessProfile: Partial<BusinessProfile>;
-  questionnaireAnswers: QuestionnaireAnswers;
+  answers: QuestionnaireAnswers;
+  status: QuestionnaireStatus;
+  templateCategory?: TemplateCategory;
   updatedAt: string;
 };
 
-export type CategoryDefinition = {
-  id: string;
-  label: string;
-  icon: string;
-  questionnaireId: string;
-};
-
-export const BUSINESS_CATEGORIES: CategoryDefinition[] = [
-  { id: "real-estate", label: "Real Estate", icon: "Building2", questionnaireId: "real-estate" },
-  { id: "education", label: "Education & Training", icon: "GraduationCap", questionnaireId: "placeholder" },
-  { id: "manufacturing", label: "Manufacturing", icon: "Factory", questionnaireId: "placeholder" },
-  { id: "packaging", label: "Packaging", icon: "Package", questionnaireId: "placeholder" },
-  { id: "fashion", label: "Clothing & Fashion Brand", icon: "Shirt", questionnaireId: "placeholder" },
-  { id: "sports", label: "Sports Academy & Institutions", icon: "Trophy", questionnaireId: "placeholder" },
-  { id: "legal", label: "Legal Services & Advocates", icon: "Scale", questionnaireId: "placeholder" },
-  { id: "consumer-goods", label: "Consumer Goods & Durables", icon: "ShoppingBag", questionnaireId: "placeholder" },
-  { id: "healthcare", label: "Healthcare & Clinics", icon: "HeartPulse", questionnaireId: "placeholder" },
-  { id: "restaurants", label: "Restaurants & Cafes", icon: "UtensilsCrossed", questionnaireId: "placeholder" },
-  { id: "technology", label: "Technology & IT Services", icon: "Cpu", questionnaireId: "placeholder" },
-  { id: "other", label: "Other", icon: "MoreHorizontal", questionnaireId: "placeholder" },
-];
-
-export const EMPTY_BUSINESS_PROFILE: Partial<BusinessProfile> = {
-  category: "",
-  business_name: "",
-  tagline: "",
-  description: "",
-  email: "",
-  phone: "",
-  phone_country_code: "+91",
-  address: "",
-  domain_preference: "",
-  social_links: [],
-};
-
 export type QuestionType =
-  | "multi-select-expandable"
+  | "text"
+  | "textarea"
   | "single-select"
-  | "multi-select-all"
-  | "design-preferences"
+  | "multi-select"
   | "file-upload"
-  | "feature-timeline"
-  | "composite-objective";
+  | "repeatable";
 
-export type QuestionConfig = {
+export type ShowWhenCondition = {
+  questionKey: string;
+  equals?: string;
+  includes?: string;
+};
+
+export type RepeatableFieldConfig = {
   key: string;
-  title: string;
-  subtitle?: string;
-  type: QuestionType;
-  initialOptions?: string[];
-  allOptions?: string[];
-  sections?: Array<{
-    key: string;
-    title: string;
-    type: "single" | "multi-expandable";
-    options?: string[];
-    initialOptions?: string[];
-    allOptions?: string[];
-  }>;
-  uploadCategories?: string[];
-  timelineSteps?: Array<{ key: string; title: string; options: string[] }>;
+  label: string;
+  type: "text" | "file";
+  placeholder?: string;
   required?: boolean;
 };
 
-export type QuestionnaireConfig = {
-  id: string;
-  categoryLabel: string;
-  questions: QuestionConfig[];
+export type QuestionConfig = {
+  key: string;
+  section: string;
+  sectionTitle: string;
+  title: string;
+  subtitle?: string;
+  placeholder?: string;
+  example?: string;
+  type: QuestionType;
+  options?: string[];
+  uploadCategories?: string[];
+  repeatableFields?: RepeatableFieldConfig[];
+  required?: boolean;
+  showWhen?: ShowWhenCondition;
+  defaultValue?: unknown;
+};
+
+export type RealEstateWebsiteProfile = {
+  industry: "real-estate";
+  template_category: TemplateCategory;
+  businessType: string;
+  businessName: string;
+  hasLogo: string;
+  logo?: FileAsset[];
+  primaryLocation: string;
+  services: string[];
+  websiteGoal: string;
+  propertyDataMethod: string;
+  propertyCount: string;
+  propertyTypes: string[];
+  sellRent: string;
+  contactMethods: string[];
+  bookSiteVisits: string;
+  siteVisitAvailability?: string;
+  showcaseTeam: string;
+  teamMembers?: TeamMember[];
+  trustCredentials: string[];
+  completedTransactions: string;
+  testimonials: string;
+  features: string[];
+  branding: {
+    websiteStyle: string;
+    colorStyle: string;
+  };
+  content: {
+    businessDescription: string;
+    differentiator: string;
+  };
+  media: Record<string, FileAsset[]>;
+  automation: string[];
+  properties: unknown[];
+  contact: {
+    methods: string[];
+    bookSiteVisits: boolean;
+    siteVisitAvailability?: string;
+  };
+  metadata: {
+    sessionId: string;
+    questionnaireId?: string;
+    completedAt: string;
+    status: QuestionnaireStatus;
+  };
 };
