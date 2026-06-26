@@ -24,13 +24,13 @@ export const PIPELINE_STAGES: PipelineStageMeta[] = [
 ];
 
 type QuestionnaireRow = {
-  status?: string;
-  ai_generation_status?: Record<string, string> | null;
-  template_selection?: Record<string, unknown> | null;
+  status?: string | null;
+  ai_generation_status?: unknown;
+  template_selection?: unknown;
 };
 
 type WebsiteRow = {
-  status?: string;
+  status?: string | null;
 };
 
 export function derivePipelineStage(
