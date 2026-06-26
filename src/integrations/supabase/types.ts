@@ -62,153 +62,106 @@ export type Database = {
         }
         Relationships: []
       }
-      questionnaire_answers: {
+      questionnaire_responses: {
         Row: {
-          answer_json: Json
+          answer: Json
+          completed: boolean
           created_at: string
           id: string
           question_index: number
           question_key: string
-          questionnaire_id: string
-          section_key: string | null
+          question_text: string
+          session_id: string
           updated_at: string
+          user_id: string
         }
         Insert: {
-          answer_json?: Json
+          answer?: Json
+          completed?: boolean
           created_at?: string
           id?: string
-          question_index?: number
+          question_index: number
           question_key: string
-          questionnaire_id: string
-          section_key?: string | null
+          question_text: string
+          session_id: string
           updated_at?: string
+          user_id?: string
         }
         Update: {
-          answer_json?: Json
+          answer?: Json
+          completed?: boolean
           created_at?: string
           id?: string
           question_index?: number
           question_key?: string
-          questionnaire_id?: string
-          section_key?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "questionnaire_answers_questionnaire_id_fkey"
-            columns: ["questionnaire_id"]
-            isOneToOne: false
-            referencedRelation: "questionnaires"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      questionnaire_files: {
-        Row: {
-          created_at: string
-          file_category: string | null
-          file_name: string
-          file_size: number | null
-          id: string
-          mime_type: string | null
-          question_key: string
-          questionnaire_id: string
-          storage_path: string
-        }
-        Insert: {
-          created_at?: string
-          file_category?: string | null
-          file_name: string
-          file_size?: number | null
-          id?: string
-          mime_type?: string | null
-          question_key: string
-          questionnaire_id: string
-          storage_path: string
-        }
-        Update: {
-          created_at?: string
-          file_category?: string | null
-          file_name?: string
-          file_size?: number | null
-          id?: string
-          mime_type?: string | null
-          question_key?: string
-          questionnaire_id?: string
-          storage_path?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "questionnaire_files_questionnaire_id_fkey"
-            columns: ["questionnaire_id"]
-            isOneToOne: false
-            referencedRelation: "questionnaires"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      questionnaires: {
-        Row: {
-          ai_generation_status: Json
-          answers_json: Json
-          completed_at: string | null
-          created_at: string
-          current_step_index: number
-          generated_json: Json | null
-          id: string
-          industry: string
-          progress_percent: number
-          session_id: string
-          status: string
-          template_category: string | null
-          template_selection: Json | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          ai_generation_status?: Json
-          answers_json?: Json
-          completed_at?: string | null
-          created_at?: string
-          current_step_index?: number
-          generated_json?: Json | null
-          id?: string
-          industry?: string
-          progress_percent?: number
-          session_id: string
-          status?: string
-          template_category?: string | null
-          template_selection?: Json | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          ai_generation_status?: Json
-          answers_json?: Json
-          completed_at?: string | null
-          created_at?: string
-          current_step_index?: number
-          generated_json?: Json | null
-          id?: string
-          industry?: string
-          progress_percent?: number
+          question_text?: string
           session_id?: string
-          status?: string
-          template_category?: string | null
-          template_selection?: Json | null
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
+      }
+      questionnaire_submissions: {
+        Row: {
+          ai_analysis: Json
+          answers_json: Json
+          business_id: string | null
+          business_profile: Json
+          category: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          session_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_analysis?: Json
+          answers_json?: Json
+          business_id?: string | null
+          business_profile?: Json
+          category: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          session_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_analysis?: Json
+          answers_json?: Json
+          business_id?: string | null
+          business_profile?: Json
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_submissions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       websites: {
         Row: {
           business_id: string | null
           created_at: string
           id: string
-          questionnaire_id: string | null
           slug: string | null
           status: string
+          submission_id: string | null
           updated_at: string
           user_id: string
           website_json: Json
@@ -217,9 +170,9 @@ export type Database = {
           business_id?: string | null
           created_at?: string
           id?: string
-          questionnaire_id?: string | null
           slug?: string | null
           status?: string
+          submission_id?: string | null
           updated_at?: string
           user_id: string
           website_json?: Json
@@ -228,9 +181,9 @@ export type Database = {
           business_id?: string | null
           created_at?: string
           id?: string
-          questionnaire_id?: string | null
           slug?: string | null
           status?: string
+          submission_id?: string | null
           updated_at?: string
           user_id?: string
           website_json?: Json
@@ -244,10 +197,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "websites_questionnaire_id_fkey"
-            columns: ["questionnaire_id"]
+            foreignKeyName: "websites_submission_id_fkey"
+            columns: ["submission_id"]
             isOneToOne: false
-            referencedRelation: "questionnaires"
+            referencedRelation: "questionnaire_submissions"
             referencedColumns: ["id"]
           },
         ]
