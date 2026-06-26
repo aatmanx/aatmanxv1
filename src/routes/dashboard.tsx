@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
@@ -13,8 +12,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRequireAuth } from "@/lib/auth/guards";
-import { getPendingOnboardingForUser } from "@/lib/auth/persist-onboarding";
 import { getDashboardData } from "@/lib/dashboard/queries";
+import { prepareAuthenticatedSession } from "@/lib/questionnaire/auth-sync";
 import { DashboardCard, InfoRow } from "@/components/dashboard/DashboardCard";
 import {
   ProgressTimeline,
@@ -37,16 +36,12 @@ function DashboardPage() {
   const queryClient = useQueryClient();
   const { userId, email, loading: authLoading } = useRequireAuth({ redirectTo: "/login" });
 
-  useEffect(() => {
-    if (!userId) return;
-    getPendingOnboardingForUser(userId).then((result) => {
-      if (result) queryClient.invalidateQueries({ queryKey: ["dashboard", userId] });
-    });
-  }, [userId, queryClient]);
-
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard", userId],
-    queryFn: () => getDashboardData(userId!),
+    queryFn: async () => {
+      await prepareAuthenticatedSession(userId!);
+      return getDashboardData(userId!);
+    },
     enabled: Boolean(userId),
   });
 

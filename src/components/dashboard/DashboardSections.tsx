@@ -27,7 +27,7 @@ export function WelcomeCard({ email, data }: Props) {
           <p className="mt-2 text-sm text-muted-foreground max-w-lg">
             {businessName
               ? `Your ${businessName} website project is at stage: ${stageMeta?.label ?? "Draft"}.`
-              : "Complete the questionnaire to start building your real estate website."}
+              : "No questionnaire found. Start the questionnaire to build your real estate website."}
           </p>
         </div>
         {!data.questionnaire && (

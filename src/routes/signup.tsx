@@ -40,14 +40,25 @@ function SignupPage() {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
       });
       if (signUpError) throw signUpError;
 
-      if (data.session) {
+      let session = data.session;
+
+      // When email confirmation is disabled, Supabase may not return a session — sign in immediately.
+      if (!session) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (signInError) throw signInError;
+        session = signInData.session;
+      }
+
+      if (session) {
         let redirectPath = nextPath;
         try {
-          const persistResult = await persistOnboardingToDatabase(data.session.user.id);
+          const persistResult = await persistOnboardingToDatabase(session.user.id);
           if (persistResult) redirectPath = "/dashboard";
         } catch {
           /* may not have onboarding state */
@@ -56,8 +67,7 @@ function SignupPage() {
         return;
       }
 
-      // Email confirmation required
-      setNotice("Check your email — we sent you a confirmation link to verify your account.");
+      setError("Account created but sign-in failed. Please try signing in.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account");
     } finally {

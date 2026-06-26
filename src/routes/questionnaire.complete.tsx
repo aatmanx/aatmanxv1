@@ -6,6 +6,7 @@ import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { completeQuestionnaire, hasUserCompletedQuestionnaire } from "@/lib/questionnaire/persistence";
 import { generateWebsiteProfileJson } from "@/lib/questionnaire/json-generator";
 import { clearState, loadState } from "@/lib/questionnaire/storage";
+import { loadQuestionnaireFromDatabase } from "@/lib/questionnaire/auth-sync";
 
 export const Route = createFileRoute("/questionnaire/complete")({
   head: () => ({
@@ -37,18 +38,20 @@ function CompletePage() {
 
   useEffect(() => {
     const tryPersist = async () => {
-      const state = loadState();
-      setLocalState(state);
-
       const { data } = await supabase.auth.getSession();
+      const userId = data.session?.user.id;
 
-      if (data.session) {
-        const alreadySaved = await hasUserCompletedQuestionnaire(data.session.user.id);
+      if (userId) {
+        const alreadySaved = await hasUserCompletedQuestionnaire(userId);
         if (alreadySaved) {
           clearState();
           navigate({ to: "/dashboard", replace: true });
           return;
         }
+
+        const localState = loadState();
+        const dbState = await loadQuestionnaireFromDatabase(userId);
+        const state = localState?.answers.business_type ? localState : dbState;
 
         if (!state?.answers.business_type) {
           navigate({ to: "/questionnaire", replace: true });
@@ -58,7 +61,7 @@ function CompletePage() {
         setSaving(true);
         try {
           const completedState = { ...state, status: "completed" as const };
-          await completeQuestionnaire(completedState, data.session.user.id);
+          await completeQuestionnaire(completedState, userId);
           clearState();
           navigate({ to: "/dashboard", replace: true });
           return;
@@ -68,6 +71,9 @@ function CompletePage() {
           setSaving(false);
         }
       }
+
+      const state = loadState();
+      setLocalState(state);
 
       if (!state?.answers.business_type) {
         navigate({ to: "/questionnaire", replace: true });
