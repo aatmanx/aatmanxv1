@@ -17,9 +17,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Github,
-  Twitter,
-  Linkedin,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
