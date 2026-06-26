@@ -13,6 +13,10 @@ import {
   TrendingUp,
   Clock,
   IndianRupee,
+  Menu,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -46,38 +50,108 @@ function Index() {
 
 /* ───────────────────── TOP NAV ───────────────────── */
 function TopNav() {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const items = [
+    { l: "Home", href: "#home" },
+    { l: "How it works", href: "#how" },
+    { l: "Pricing", href: "#pricing" },
+    { l: "Resources", href: "#resources" },
+  ];
+
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-40 select-none">
-      <nav className="flex items-center gap-1 rounded-full border border-border bg-card/70 backdrop-blur-lg px-1 py-1 shadow-lg">
-        {[
-          { l: "home", href: "#home" },
-          { l: "how it works", href: "#how" },
-          { l: "pricing", href: "#pricing" },
-          { l: "resources", href: "#resources" },
-        ].map((i) => (
-          <a
-            key={i.l}
-            href={i.href}
-            className="px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition rounded-full"
+    <header
+      className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
+        scrolled
+          ? "border-b border-border bg-background/80 backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2">
+          <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card/60">
+            <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_14px_var(--color-accent)]" />
+          </span>
+          <span className="text-sm font-semibold tracking-tight text-foreground">aatman</span>
+        </Link>
+
+        {/* Center nav (desktop) */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {items.map((i) => (
+            <a
+              key={i.l}
+              href={i.href}
+              className="px-3 py-2 text-[13px] text-muted-foreground hover:text-foreground transition rounded-md"
+            >
+              {i.l}
+            </a>
+          ))}
+        </nav>
+
+        {/* Right CTA */}
+        <div className="flex items-center gap-3">
+          <Link
+            to="/login"
+            className="hidden sm:inline-flex text-[13px] text-muted-foreground hover:text-foreground transition"
           >
-            {i.l}
-          </a>
-        ))}
-      </nav>
-    </div>
+            Sign in
+          </Link>
+          <Link
+            to="/dashboard"
+            className="hidden lg:inline-flex items-center gap-1.5 rounded-full border border-accent/60 bg-foreground px-4 py-2 text-[13px] font-semibold text-background hover:bg-foreground/90 transition shadow-[0_0_24px_-10px_var(--color-accent)]"
+          >
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            Open dashboard
+          </Link>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card/40 text-foreground"
+          >
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile sheet */}
+      {open && (
+        <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-xl">
+          <div className="mx-auto max-w-6xl px-6 py-4 flex flex-col gap-1">
+            {items.map((i) => (
+              <a
+                key={i.l}
+                href={i.href}
+                onClick={() => setOpen(false)}
+                className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition rounded-md"
+              >
+                {i.l}
+              </a>
+            ))}
+            <Link
+              to="/dashboard"
+              onClick={() => setOpen(false)}
+              className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-full border border-accent/60 bg-foreground px-4 py-2.5 text-sm font-semibold text-background"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Open dashboard
+            </Link>
+          </div>
+        </div>
+      )}
+    </header>
   );
 }
 
 function DashboardFab() {
-  return (
-    <Link
-      to="/dashboard"
-      aria-label="Open dashboard"
-      className="fixed right-6 top-6 z-50 inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/60 text-foreground/80 backdrop-blur-lg shadow-lg transition hover:border-accent/60 hover:text-foreground"
-    >
-      <LayoutDashboard className="h-4 w-4" />
-    </Link>
-  );
+  return null;
 }
 
 /* ───────────────────── HERO ───────────────────── */
@@ -86,44 +160,31 @@ function Hero() {
   return (
     <section
       id="home"
-      className="relative flex min-h-[100svh] flex-col items-center justify-center px-6 text-center"
+      className="relative flex min-h-[100svh] flex-col items-center justify-center px-6 pt-28 pb-20 text-center"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="inline-flex items-center gap-2 rounded-full border border-border bg-card/40 backdrop-blur px-3.5 py-1.5 text-[11px] text-muted-foreground"
-      >
-        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-        ai website builder for businesses
-      </motion.div>
-
       <motion.h1
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.05 }}
-        className="mt-7 max-w-5xl text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter leading-[1.02] text-foreground"
+        transition={{ duration: 0.7 }}
+        className="max-w-[60rem] text-3xl sm:text-5xl md:text-6xl lg:text-[64px] font-bold tracking-tighter leading-[1.05] text-foreground whitespace-normal lg:whitespace-nowrap"
       >
-        Build your business website
-        <br />
-        <span className="text-muted-foreground">in minutes.</span>
+        Build your business website in minutes.
       </motion.h1>
 
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.15 }}
-        className="mt-6 max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed"
+        className="mt-7 max-w-2xl text-base text-muted-foreground leading-relaxed"
       >
-        Answer a short questionnaire about your business — aatman ships a production-grade
-        website branded, optimized and deployed.
+        Tell us about your business and get your business website published in minutes.
       </motion.p>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.25 }}
-        className="mt-9 flex flex-wrap items-center justify-center gap-3"
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="mt-10 flex flex-wrap items-center justify-center gap-3"
       >
         <button
           onClick={() => navigate({ to: "/questionnaire" })}
@@ -522,21 +583,183 @@ function Resources() {
 
 /* ───────────────────── FOOTER ───────────────────── */
 function Footer() {
+  const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-border px-6 py-12 pb-28 sm:pb-12">
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-foreground" />
-          <span className="text-foreground font-semibold">aatman</span>
-          <span>— websites for businesses, engineered.</span>
+    <footer
+      id="contact"
+      className="relative border-t border-border bg-background overflow-hidden"
+    >
+      {/* Top grid lines decoration */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, var(--color-foreground) 1px, transparent 1px), linear-gradient(to bottom, var(--color-foreground) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-20 left-1/2 h-40 w-[80%] -translate-x-1/2 bg-accent/10 blur-[120px]"
+      />
+
+      <div className="relative max-w-6xl mx-auto px-6 pt-20 pb-12">
+        {/* CTA strip */}
+        <div className="rounded-2xl border border-border bg-card/40 backdrop-blur p-8 sm:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.25em] text-accent mb-3">
+              // build with aatman
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-bold tracking-tighter text-foreground">
+              Ready to ship your business online?
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground max-w-md">
+              From intake to a deployed, branded website — in minutes, not months.
+            </p>
+          </div>
+          <Link
+            to="/questionnaire"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-accent/70 bg-foreground px-6 py-3 text-sm font-semibold text-background hover:bg-foreground/90 transition shadow-[0_0_36px_-10px_var(--color-accent)] shrink-0"
+          >
+            Start your build
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
-        <div className="flex items-center gap-6">
-          <a href="#" className="hover:text-foreground transition">privacy</a>
-          <a href="#" className="hover:text-foreground transition">terms</a>
-          <a href="#" className="hover:text-foreground transition">contact</a>
+
+        {/* Main grid */}
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-12 gap-10">
+          {/* Brand column */}
+          <div className="col-span-2 md:col-span-5">
+            <Link to="/" className="inline-flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card/60">
+                <span className="h-2 w-2 rounded-full bg-accent shadow-[0_0_14px_var(--color-accent)]" />
+              </span>
+              <span className="text-base font-semibold tracking-tight text-foreground">
+                aatman
+              </span>
+            </Link>
+            <p className="mt-5 max-w-sm text-sm text-muted-foreground leading-relaxed">
+              The AI website engine for B2B operators. Structured intake, brand-grade output,
+              production deploys — without the agency overhead.
+            </p>
+
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-card/40 px-3 py-1.5 text-[11px] text-muted-foreground">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-60 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+              </span>
+              All systems operational
+            </div>
+          </div>
+
+          {/* Product */}
+          <FooterCol
+            title="Product"
+            links={[
+              { l: "How it works", href: "#how" },
+              { l: "Pricing", href: "#pricing" },
+              { l: "Resources", href: "#resources" },
+              { l: "Dashboard", href: "/dashboard" },
+            ]}
+          />
+          {/* Company */}
+          <FooterCol
+            title="Company"
+            links={[
+              { l: "About", href: "#" },
+              { l: "Customers", href: "#" },
+              { l: "Changelog", href: "#" },
+              { l: "Status", href: "#" },
+            ]}
+          />
+          {/* Legal */}
+          <FooterCol
+            title="Legal"
+            links={[
+              { l: "Privacy", href: "#" },
+              { l: "Terms", href: "#" },
+              { l: "Security", href: "#" },
+              { l: "DPA", href: "#" },
+            ]}
+          />
+        </div>
+
+        {/* Contact strip */}
+        <div className="mt-16 grid sm:grid-cols-3 gap-4">
+          <a
+            href="mailto:aatmanxcares@gmail.com"
+            className="group rounded-xl border border-border bg-card/30 px-5 py-4 hover:border-accent/40 transition"
+          >
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+              <Mail className="h-3 w-3 text-accent" /> Email
+            </div>
+            <div className="mt-1.5 text-sm text-foreground group-hover:text-accent transition">
+              aatmanxcares@gmail.com
+            </div>
+          </a>
+          <a
+            href="tel:+919880291310"
+            className="group rounded-xl border border-border bg-card/30 px-5 py-4 hover:border-accent/40 transition"
+          >
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+              <Phone className="h-3 w-3 text-accent" /> Phone / WhatsApp
+            </div>
+            <div className="mt-1.5 text-sm text-foreground group-hover:text-accent transition">
+              +91 98802 91310
+            </div>
+          </a>
+          <div className="rounded-xl border border-border bg-card/30 px-5 py-4">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+              <MapPin className="h-3 w-3 text-accent" /> Office
+            </div>
+            <div className="mt-1.5 text-sm text-foreground">Bangalore, Karnataka</div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-border pt-8 text-[11px] text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span>© {year} aatman — websites for businesses, engineered.</span>
+          </div>
+          <div className="flex items-center gap-4 font-mono tabular-nums">
+            <span>v1.0.0</span>
+            <span className="h-1 w-1 rounded-full bg-border" />
+            <span>built in bangalore</span>
+            <span className="h-1 w-1 rounded-full bg-border" />
+            <span className="text-accent">● live</span>
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { l: string; href: string }[];
+}) {
+  return (
+    <div className="col-span-1 md:col-span-2">
+      <div className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+        {title}
+      </div>
+      <ul className="mt-5 space-y-3">
+        {links.map((i) => (
+          <li key={i.l}>
+            <a
+              href={i.href}
+              className="text-sm text-foreground/80 hover:text-accent transition"
+            >
+              {i.l}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

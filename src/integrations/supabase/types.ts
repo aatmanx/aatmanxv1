@@ -159,7 +159,7 @@ export type Database = {
           industry: string
           progress_percent: number
           session_id: string
-          status: string
+          status: Database["public"]["Enums"]["questionnaire_status"]
           template_category: string | null
           template_selection: Json | null
           updated_at: string
@@ -176,7 +176,7 @@ export type Database = {
           industry?: string
           progress_percent?: number
           session_id: string
-          status?: string
+          status?: Database["public"]["Enums"]["questionnaire_status"]
           template_category?: string | null
           template_selection?: Json | null
           updated_at?: string
@@ -193,7 +193,7 @@ export type Database = {
           industry?: string
           progress_percent?: number
           session_id?: string
-          status?: string
+          status?: Database["public"]["Enums"]["questionnaire_status"]
           template_category?: string | null
           template_selection?: Json | null
           updated_at?: string
@@ -260,7 +260,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      questionnaire_status:
+        | "draft"
+        | "in_progress"
+        | "completed"
+        | "processing"
+        | "generated"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -387,6 +392,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      questionnaire_status: [
+        "draft",
+        "in_progress",
+        "completed",
+        "processing",
+        "generated",
+      ],
+    },
   },
 } as const
