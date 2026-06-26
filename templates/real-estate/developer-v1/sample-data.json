@@ -1,15 +1,33 @@
 {
   "businessName": "Sample Property Developer",
+  "tagline": "Crafting Landmarks. Building Legacies.",
+  "established": "2004",
+  "logoText": "DEVELOPER",
   "templateCategory": "developer",
   "hero": {
-    "title": "Find your next property",
-    "subtitle": "Premium real estate services"
+    "eyebrow": "Premium Real Estate Developer",
+    "title": "Where Address Becomes Identity.",
+    "subtitle": "Meticulously crafted residences and commercial landmarks.",
+    "stats": [
+      { "label": "Years of Excellence", "value": "20+" },
+      { "label": "Projects Delivered", "value": "48" },
+      { "label": "Happy Families", "value": "12,500+" },
+      { "label": "Sq. Ft. Developed", "value": "18M" }
+    ]
   },
-  "properties": [
+  "contact": {
+    "address": "123 Business Park, City, State 000000",
+    "phone": "+91 00000 00000",
+    "email": "sales@example.com",
+    "whatsapp": "+910000000000"
+  },
+  "projects": [
     {
-      "title": "Sample Property",
-      "price": "₹1.2 Cr",
-      "location": "Bangalore"
+      "slug": "sample-project-1",
+      "name": "Sample Project One",
+      "tagline": "Premium residences in the heart of the city.",
+      "location": "City, State",
+      "startingPrice": "₹ 1.2 Cr*"
     }
   ]
 }

@@ -13,12 +13,12 @@ import type { QuestionnaireAnswers, QuestionnaireState } from "@/lib/questionnai
 import { mapBusinessTypeToTemplate } from "@/lib/questionnaire/template-mapping";
 import { clampStepIndex, getValidationError } from "@/lib/questionnaire/validation";
 import {
-  createInitialState,
   deriveStatus,
   loadState,
   saveState,
   setupLeaveGuard,
 } from "@/lib/questionnaire/storage";
+import { resolveQuestionnaireInit } from "@/lib/questionnaire/auth-sync";
 import { syncQuestionnaireToDatabase } from "@/lib/questionnaire/persistence";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -40,27 +40,46 @@ function QuestionnairePage() {
   const [syncing, setSyncing] = useState(false);
   const [completing, setCompleting] = useState(false);
 
+  const [userId, setUserId] = useState<string | null>(null);
+
   useEffect(() => {
-    const loaded = loadState();
-    if (!loaded) {
-      setState(createInitialState());
+    let mounted = true;
+
+    async function init() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const uid = sessionData.session?.user.id ?? null;
+      if (!mounted) return;
+
+      setUserId(uid);
+
+      const { state: resolved, redirectTo } = await resolveQuestionnaireInit(uid);
+      if (!mounted) return;
+
+      if (redirectTo) {
+        navigate({ to: redirectTo, replace: true });
+        return;
+      }
+
+      setState(resolved);
       setReady(true);
-      return;
     }
 
-    if (loaded.status === "completed") {
-      navigate({ to: "/questionnaire/complete", replace: true });
-      return;
-    }
+    init();
 
-    setState(loaded);
-    setReady(true);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? null);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, [navigate]);
 
   useEffect(() => {
-    if (!state) return;
+    if (!state || userId) return;
     saveState(state);
-  }, [state]);
+  }, [state, userId]);
 
   useEffect(() => setupLeaveGuard(Boolean(state)), [state]);
 

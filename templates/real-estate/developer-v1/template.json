@@ -4,28 +4,69 @@
   "industry": "real-estate",
   "category": "developer",
   "version": "1.0.0",
-  "status": "placeholder",
+  "status": "production",
   "description": "Developer and builder sites highlighting projects, timelines, and investment opportunities.",
   "supportedFeatures": [
     "project showcase",
     "timeline",
     "floor plans",
     "lead capture",
-    "investor CTA"
+    "investor CTA",
+    "construction updates",
+    "site visit booking",
+    "whatsapp integration"
   ],
   "pages": [
     "home",
     "about",
-    "properties",
+    "projects",
+    "project-detail",
+    "construction-updates",
+    "site-visit",
     "contact"
   ],
   "components": [
     "hero",
-    "property-grid",
-    "team",
-    "contact-form",
-    "footer"
+    "featured-projects",
+    "why-choose-us",
+    "amenities",
+    "construction-progress",
+    "location-advantages",
+    "testimonials",
+    "site-visit-cta",
+    "contact-section",
+    "header",
+    "footer",
+    "site-shell",
+    "page-header",
+    "project-card",
+    "site-visit-form",
+    "whatsapp-button"
+  ],
+  "contentSlots": [
+    "hero",
+    "about",
+    "projects",
+    "amenities",
+    "gallery",
+    "testimonials",
+    "contact",
+    "footer",
+    "seo",
+    "faq",
+    "cta",
+    "construction",
+    "siteVisit"
   ],
   "rootPath": "templates/real-estate/developer-v1",
-  "importPath": "templates/real-estate/developer-v1/IMPORT_HERE"
+  "importPath": "templates/real-estate/developer-v1/IMPORT_HERE",
+  "convertedAt": "2026-06-26",
+  "structure": {
+    "components": "components/",
+    "pages": "pages/",
+    "assets": "assets/",
+    "constants": "constants/",
+    "utilities": "utilities/",
+    "config": "config/"
+  }
 }

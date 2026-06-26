@@ -66,6 +66,28 @@ export async function syncQuestionnaireToDatabase(
   return { ...state, questionnaireId, templateCategory };
 }
 
+export async function getLatestQuestionnaireForUser(userId: string) {
+  const { data, error } = await supabase
+    .from("questionnaires")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function getWebsiteForQuestionnaire(questionnaireId: string) {
+  const { data, error } = await supabase
+    .from("websites")
+    .select("id, business_id, slug, status")
+    .eq("questionnaire_id", questionnaireId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 export async function completeQuestionnaire(state: QuestionnaireState, userId: string) {
   const answersWithFiles = await uploadAllPendingFiles(userId, state.answers);
   const completedState: QuestionnaireState = {
@@ -76,6 +98,26 @@ export async function completeQuestionnaire(state: QuestionnaireState, userId: s
 
   const completion = buildCompletionPayload(completedState);
   const businessName = (answersWithFiles.business_name as string) ?? "My Business";
+
+  const { data: existingQuestionnaire } = await supabase
+    .from("questionnaires")
+    .select("id, status")
+    .eq("session_id", state.sessionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingQuestionnaire?.status === "completed") {
+    const existingWebsite = await getWebsiteForQuestionnaire(existingQuestionnaire.id);
+    if (existingWebsite) {
+      return {
+        questionnaireId: existingQuestionnaire.id,
+        businessId: existingWebsite.business_id,
+        websiteId: existingWebsite.id,
+        generatedJson: completion.generated_json,
+        templateSelection: completion.template_selection,
+      };
+    }
+  }
 
   const { data: questionnaire, error: qError } = await supabase
     .from("questionnaires")
@@ -101,22 +143,45 @@ export async function completeQuestionnaire(state: QuestionnaireState, userId: s
 
   if (qError || !questionnaire) throw new Error(qError?.message ?? "Failed to complete questionnaire");
 
-  const { data: business, error: bizError } = await supabase
-    .from("businesses")
-    .insert({
-      user_id: userId,
-      category: "real-estate",
-      business_name: businessName,
-      description: (answersWithFiles.business_description as string) ?? "",
-      email: "",
-      phone: "",
-      address: (answersWithFiles.primary_location as string) ?? "",
-      social_links: [] as unknown as Json,
-    })
-    .select("id")
-    .single();
+  const existingWebsite = await getWebsiteForQuestionnaire(questionnaire.id);
+  if (existingWebsite) {
+    return {
+      questionnaireId: questionnaire.id,
+      businessId: existingWebsite.business_id,
+      websiteId: existingWebsite.id,
+      generatedJson: completion.generated_json,
+      templateSelection: completion.template_selection,
+    };
+  }
 
-  if (bizError || !business) throw new Error(bizError?.message ?? "Failed to save business");
+  const { data: existingBusiness } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("business_name", businessName)
+    .maybeSingle();
+
+  let businessId = existingBusiness?.id;
+
+  if (!businessId) {
+    const { data: business, error: bizError } = await supabase
+      .from("businesses")
+      .insert({
+        user_id: userId,
+        category: "real-estate",
+        business_name: businessName,
+        description: (answersWithFiles.business_description as string) ?? "",
+        email: (answersWithFiles.contact_email as string) ?? "",
+        phone: (answersWithFiles.contact_phone as string) ?? "",
+        address: (answersWithFiles.primary_location as string) ?? "",
+        social_links: [] as unknown as Json,
+      })
+      .select("id")
+      .single();
+
+    if (bizError || !business) throw new Error(bizError?.message ?? "Failed to save business");
+    businessId = business.id;
+  }
 
   const slug = businessName.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
 
@@ -124,7 +189,7 @@ export async function completeQuestionnaire(state: QuestionnaireState, userId: s
     .from("websites")
     .insert({
       user_id: userId,
-      business_id: business.id,
+      business_id: businessId,
       questionnaire_id: questionnaire.id,
       slug,
       website_json: { profile: completion.generated_json } as unknown as Json,
@@ -137,7 +202,7 @@ export async function completeQuestionnaire(state: QuestionnaireState, userId: s
 
   return {
     questionnaireId: questionnaire.id,
-    businessId: business.id,
+    businessId,
     websiteId: website.id,
     generatedJson: completion.generated_json,
     templateSelection: completion.template_selection,

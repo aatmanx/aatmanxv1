@@ -7,6 +7,7 @@ function manifest(
   category: TemplateCategory,
   description: string,
   features: string[],
+  status: TemplateManifest["status"] = "placeholder",
 ): TemplateManifest {
   const rootPath = buildTemplatePath("real-estate", templateId);
   return {
@@ -15,7 +16,7 @@ function manifest(
     industry: "real-estate",
     category,
     version: "1.0.0",
-    status: "placeholder",
+    status,
     description,
     supportedFeatures: features,
     pages: ["home", "about", "properties", "contact"],
@@ -42,7 +43,8 @@ export const TEMPLATE_REGISTRY: TemplateManifest[] = [
     "Property Developer",
     "developer",
     "Developer and builder sites highlighting projects, timelines, and investment opportunities.",
-    ["project showcase", "timeline", "floor plans", "lead capture", "investor CTA"],
+    ["project showcase", "timeline", "floor plans", "lead capture", "investor CTA", "construction updates", "site visit booking"],
+    "production",
   ),
   manifest(
     "luxury-v1",
