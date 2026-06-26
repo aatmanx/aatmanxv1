@@ -10,7 +10,8 @@ type Props = {
 
 export function WelcomeCard({ email, data }: Props) {
   const name = email?.split("@")[0] ?? "there";
-  const businessName = data.business?.business_name ?? data.questionnaire?.answers_json?.business_name as string | undefined;
+  const answers = (data.questionnaire?.answers_json ?? {}) as Record<string, unknown>;
+  const businessName = data.business?.business_name ?? (answers.business_name as string | undefined);
   const stage = derivePipelineStage(data.questionnaire, data.website);
   const stageMeta = PIPELINE_STAGES.find((s) => s.id === stage);
 
