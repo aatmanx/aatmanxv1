@@ -10,7 +10,6 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { syncAuthenticatedDraft } from "@/lib/questionnaire/auth-sync";
 
@@ -39,10 +38,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 font-mono">
       <div className="max-w-md text-center">
@@ -88,8 +83,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "aatman — Websites for businesses, built in minutes" },
       { name: "twitter:description", content: "aatman builds production-ready business websites from a few questions. Answer, generate, ship — no designers, no dev cycles." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bb445d37-fa0b-48c9-83ca-aad1ce09aa50/id-preview-33f6571c--ce4db550-679f-4ceb-80a5-e352a901a947.lovable.app-1781711018462.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bb445d37-fa0b-48c9-83ca-aad1ce09aa50/id-preview-33f6571c--ce4db550-679f-4ceb-80a5-e352a901a947.lovable.app-1781711018462.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
